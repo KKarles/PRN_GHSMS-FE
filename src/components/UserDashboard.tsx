@@ -22,6 +22,12 @@ const UserDashboard: React.FC = () => {
   const [isLoadingResults, setIsLoadingResults] = useState(false)
   const [resultsError, setResultsError] = useState<string | null>(null)
   
+  // Menstrual cycle states
+  const [showLogModal, setShowLogModal] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [cycleNotifications, setCycleNotifications] = useState(true)
+  const [pillReminderTime, setPillReminderTime] = useState('08:00')
+  
   // TODO: Use bookings data for booking history or dashboard statistics
 
   // Initialize pill reminder from user profile
@@ -392,74 +398,292 @@ const UserDashboard: React.FC = () => {
     </div>
   )
 
-  const renderMenstrualCycleView = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-primary font-semibold text-text-dark">Theo dõi chu kỳ</h2>
-      
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
-          <h3 className="font-primary font-semibold text-text-dark mb-4">Ghi nhận kỳ kinh</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block font-secondary text-text-dark mb-2">Ngày bắt đầu</label>
-              <input 
-                type="date" 
-                className="w-full px-4 py-2 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block font-secondary text-text-dark mb-2">Độ dài kỳ kinh (ngày)</label>
-              <input 
-                type="number" 
-                placeholder="5"
-                className="w-full px-4 py-2 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <button className="w-full bg-primary text-text-light py-2 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors">
-              Lưu
-            </button>
-          </div>
-        </div>
+  const renderMenstrualCycleView = () => {
+    // Mock cycle data - would come from API
+    const currentCycleDay = 12
+    const cycleLength = 28
+    const cyclePhase = 'Giai đoạn nang trứng'
+    
+    const cycleHistory = [
+      { startDate: '2024-11-15', endDate: '2024-11-20', actualLength: 28 },
+      { startDate: '2024-10-18', endDate: '2024-10-23', actualLength: 29 },
+      { startDate: '2024-09-20', endDate: '2024-09-25', actualLength: 27 }
+    ]
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
-          <h3 className="font-primary font-semibold text-text-dark mb-4">Dự đoán</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="font-secondary text-text-dark">Ngày rụng trứng dự kiến</span>
-              <span className="font-secondary font-semibold text-primary">20/07/2025</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="font-secondary text-text-dark">Cửa sổ thụ thai</span>
-              <span className="font-secondary font-semibold text-primary">15/07 - 20/07/2025</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    const handleLogNewCycle = (e: React.FormEvent) => {
+      e.preventDefault()
+      // TODO: Submit to API
+      setShowLogModal(false)
+    }
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+    return (
+      <div className="space-y-8">
+        {/* Page Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-primary font-semibold text-text-dark">Nhắc nhở uống thuốc hàng ngày</h3>
-            <p className="font-secondary text-gray-600 text-sm mt-1">
-              Nhận thông báo nhắc nhở uống thuốc tránh thai
-            </p>
-          </div>
+          <h2 className="text-2xl font-primary font-semibold text-text-dark">
+            Chu Kỳ Của Tôi
+          </h2>
           <button
-            onClick={() => setPillReminder(!pillReminder)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              pillReminder ? 'bg-primary' : 'bg-gray-200'
-            }`}
+            onClick={() => setShowLogModal(true)}
+            className="flex items-center bg-primary text-text-light px-6 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
           >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                pillReminder ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
+            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Ghi nhận Kỳ kinh Mới
           </button>
         </div>
+
+        {/* Current Cycle Visual Tracker */}
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-border-subtle">
+          <div className="text-center mb-8">
+            {/* Circular Progress Indicator */}
+            <div className="relative inline-flex items-center justify-center w-48 h-48 mb-6">
+              <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 100 100">
+                {/* Background circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#e5e7eb"
+                  strokeWidth="8"
+                  fill="none"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="#0f4f43"
+                  strokeWidth="8"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(currentCycleDay / cycleLength) * 251.2} 251.2`}
+                  className="transition-all duration-300"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="text-3xl font-primary font-bold text-text-dark">
+                  Ngày {currentCycleDay}
+                </div>
+                <div className="text-sm font-secondary text-gray-600 mt-1">
+                  {cyclePhase}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-border-subtle pt-6">
+            <div className="grid md:grid-cols-3 gap-6 text-center">
+              <div>
+                <p className="font-secondary text-gray-600 text-sm mb-1">
+                  Ngày rụng trứng dự kiến
+                </p>
+                <p className="text-lg font-primary font-semibold text-text-dark">
+                  15/07/2025
+                </p>
+              </div>
+              <div>
+                <p className="font-secondary text-gray-600 text-sm mb-1">
+                  Bắt đầu cửa sổ thụ thai
+                </p>
+                <p className="text-lg font-primary font-semibold text-text-dark">
+                  10/07/2025
+                </p>
+              </div>
+              <div>
+                <p className="font-secondary text-gray-600 text-sm mb-1">
+                  Kết thúc cửa sổ thụ thai
+                </p>
+                <p className="text-lg font-primary font-semibold text-text-dark">
+                  16/07/2025
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cycle History Section */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <h3 className="text-lg font-primary font-semibold text-text-dark">
+              Xem Lịch sử Chu kỳ
+            </h3>
+            {showHistory ? (
+              <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+            ) : (
+              <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+            )}
+          </button>
+          
+          {showHistory && (
+            <div className="mt-6">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border-subtle">
+                      <th className="text-left py-3 font-secondary font-semibold text-gray-600">
+                        Ngày Bắt Đầu
+                      </th>
+                      <th className="text-left py-3 font-secondary font-semibold text-gray-600">
+                        Ngày Kết Thúc
+                      </th>
+                      <th className="text-left py-3 font-secondary font-semibold text-gray-600">
+                        Độ Dài Thực Tế
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cycleHistory.map((cycle, index) => (
+                      <tr key={index} className="border-b border-gray-100">
+                        <td className="py-3 font-secondary text-text-dark">
+                          {new Date(cycle.startDate).toLocaleDateString('vi-VN')}
+                        </td>
+                        <td className="py-3 font-secondary text-text-dark">
+                          {new Date(cycle.endDate).toLocaleDateString('vi-VN')}
+                        </td>
+                        <td className="py-3 font-secondary text-text-dark">
+                          {cycle.actualLength} ngày
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Settings and Reminders */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+          <h3 className="text-lg font-primary font-semibold text-text-dark mb-6">
+            Cài đặt & Nhắc nhở
+          </h3>
+          
+          <div className="space-y-6">
+            {/* Cycle Notifications Toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-secondary text-text-dark">
+                  Nhận email dự báo về chu kỳ
+                </p>
+                <p className="font-secondary text-gray-600 text-sm">
+                  Cửa sổ thụ thai, ngày rụng trứng
+                </p>
+              </div>
+              <button
+                onClick={() => setCycleNotifications(!cycleNotifications)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  cycleNotifications ? 'bg-primary' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    cycleNotifications ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="border-t border-border-subtle pt-6">
+              {/* Pill Reminder Toggle */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-secondary text-text-dark">
+                    Bật nhắc nhở uống thuốc tránh thai hàng ngày
+                  </p>
+                </div>
+                <button
+                  onClick={() => setPillReminder(!pillReminder)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    pillReminder ? 'bg-primary' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      pillReminder ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Time Picker (conditional) */}
+              {pillReminder && (
+                <div className="ml-0">
+                  <label className="block font-secondary text-text-dark mb-2">
+                    Giờ nhắc nhở
+                  </label>
+                  <input
+                    type="time"
+                    value={pillReminderTime}
+                    onChange={(e) => setPillReminderTime(e.target.value)}
+                    className="px-4 py-2 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Log New Cycle Modal */}
+        {showLogModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <h3 className="text-xl font-primary font-semibold text-text-dark mb-6">
+                Ghi nhận Kỳ kinh Mới
+              </h3>
+              
+              <form onSubmit={handleLogNewCycle} className="space-y-4">
+                <div>
+                  <label className="block font-secondary text-text-dark mb-2">
+                    Ngày bắt đầu kỳ kinh
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    className="w-full px-4 py-3 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block font-secondary text-text-dark mb-2">
+                    Độ dài chu kỳ dự kiến (ngày)
+                  </label>
+                  <input
+                    type="number"
+                    min="21"
+                    max="35"
+                    defaultValue="28"
+                    required
+                    className="w-full px-4 py-3 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+                
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowLogModal(false)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-secondary font-bold hover:bg-gray-50 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-primary text-text-light px-6 py-3 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors"
+                  >
+                    Lưu Chu Kỳ
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  )
+    )
+  }
 
   const renderAccountView = () => (
     <div className="space-y-6">
