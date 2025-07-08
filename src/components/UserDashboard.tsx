@@ -4,6 +4,7 @@ import {
   DocumentTextIcon, 
   CalendarIcon, 
   UserIcon,
+  ClockIcon,
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline'
@@ -31,7 +32,7 @@ const UserDashboard: React.FC = () => {
 
   // Fetch test results when component mounts or when switching to test results view
   useEffect(() => {
-    if (activeView === 'test-results' || activeView === 'dashboard') {
+    if (activeView === 'test-results' || activeView === 'dashboard' || activeView === 'my-bookings') {
       fetchTestResults()
       fetchBookings()
     }
@@ -72,6 +73,7 @@ const UserDashboard: React.FC = () => {
   const sidebarItems = [
     { id: 'dashboard', text: 'Tổng quan', icon: HomeIcon },
     { id: 'test-results', text: 'Kết quả Xét nghiệm', icon: DocumentTextIcon },
+    { id: 'my-bookings', text: 'Lịch hẹn của tôi', icon: ClockIcon },
     { id: 'menstrual-cycle', text: 'Chu kỳ của tôi', icon: CalendarIcon },
     { id: 'account', text: 'Tài khoản', icon: UserIcon }
   ]
@@ -352,10 +354,275 @@ const UserDashboard: React.FC = () => {
     </div>
   )
 
+  const renderMyBookingsView = () => {
+    const groupBookingsByStatus = (bookings: TestBooking[]) => {
+      const groups = {
+        upcoming: bookings.filter(b => ['Booked'].includes(b.bookingStatus)),
+        inProgress: bookings.filter(b => ['SampleCollected', 'Processing'].includes(b.bookingStatus)),
+        completed: bookings.filter(b => ['ResultReady'].includes(b.bookingStatus))
+      }
+      return groups
+    }
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'Booked':
+          return 'bg-blue-50 text-blue-700 border-blue-200'
+        case 'SampleCollected':
+          return 'bg-green-50 text-green-700 border-green-200'
+        case 'Processing':
+          return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+        case 'ResultReady':
+          return 'bg-green-50 text-green-700 border-green-200'
+        default:
+          return 'bg-gray-50 text-gray-700 border-gray-200'
+      }
+    }
+
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case 'Booked':
+          return 'Đã đặt hẹn'
+        case 'SampleCollected':
+          return 'Đã lấy mẫu'
+        case 'Processing':
+          return 'Đang xử lý'
+        case 'ResultReady':
+          return 'Có kết quả'
+        default:
+          return status
+      }
+    }
+
+    const formatDateTime = (dateTimeString: string) => {
+      const date = new Date(dateTimeString)
+      return {
+        date: date.toLocaleDateString('vi-VN', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        time: date.toLocaleTimeString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }
+    }
+
+    if (bookings.length === 0) {
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-primary font-semibold text-text-dark">Lịch hẹn của tôi</h2>
+            <button
+              onClick={() => window.location.href = '/book-service'}
+              className="bg-primary text-text-light px-6 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
+            >
+              Đặt hẹn mới
+            </button>
+          </div>
+          
+          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-border-subtle">
+            <ClockIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-primary font-semibold text-text-dark mb-2">
+              Chưa có lịch hẹn nào
+            </h3>
+            <p className="font-secondary text-gray-600 mb-6">
+              Bạn chưa đặt lịch hẹn xét nghiệm nào. Hãy bắt đầu hành trình chăm sóc sức khỏe của bạn.
+            </p>
+            <button
+              onClick={() => window.location.href = '/book-service'}
+              className="bg-primary text-text-light px-8 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
+            >
+              Đặt lịch hẹn đầu tiên
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    const groupedBookings = groupBookingsByStatus(bookings)
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-primary font-semibold text-text-dark">Lịch hẹn của tôi</h2>
+          <button
+            onClick={() => window.location.href = '/book-service'}
+            className="bg-primary text-text-light px-6 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
+          >
+            Đặt hẹn mới
+          </button>
+        </div>
+
+        <div className="space-y-8">
+          {/* Upcoming Bookings */}
+          {groupedBookings.upcoming.length > 0 && (
+            <section>
+              <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                Lịch hẹn sắp tới ({groupedBookings.upcoming.length})
+              </h3>
+              <div className="space-y-4">
+                {groupedBookings.upcoming.map((booking) => {
+                  const { date, time } = formatDateTime(booking.appointmentTime)
+                  return (
+                    <div key={booking.bookingId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getStatusColor(booking.bookingStatus)}`}>
+                              {getStatusText(booking.bookingStatus)}
+                            </span>
+                          </div>
+                          
+                          <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
+                            {booking.serviceName}
+                          </h4>
+                          
+                          <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
+                            <div className="flex items-center">
+                              <CalendarIcon className="h-4 w-4 mr-2" />
+                              {date}
+                            </div>
+                            <div className="flex items-center">
+                              <ClockIcon className="h-4 w-4 mr-2" />
+                              {time}
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <p className="text-sm font-secondary text-gray-600">
+                              <strong>Mã đặt hẹn:</strong> #{booking.bookingId}
+                            </p>
+                            <p className="text-sm font-secondary text-gray-600">
+                              <strong>Chi phí:</strong> {booking.servicePrice?.toLocaleString('vi-VN')} VNĐ
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* In Progress Bookings */}
+          {groupedBookings.inProgress.length > 0 && (
+            <section>
+              <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                Đang xử lý ({groupedBookings.inProgress.length})
+              </h3>
+              <div className="space-y-4">
+                {groupedBookings.inProgress.map((booking) => {
+                  const { date, time } = formatDateTime(booking.appointmentTime)
+                  return (
+                    <div key={booking.bookingId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getStatusColor(booking.bookingStatus)}`}>
+                              {getStatusText(booking.bookingStatus)}
+                            </span>
+                          </div>
+                          
+                          <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
+                            {booking.serviceName}
+                          </h4>
+                          
+                          <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
+                            <div className="flex items-center">
+                              <CalendarIcon className="h-4 w-4 mr-2" />
+                              {date}
+                            </div>
+                            <div className="flex items-center">
+                              <ClockIcon className="h-4 w-4 mr-2" />
+                              {time}
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <p className="text-sm font-secondary text-gray-600">
+                              <strong>Mã đặt hẹn:</strong> #{booking.bookingId}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Completed Bookings */}
+          {groupedBookings.completed.length > 0 && (
+            <section>
+              <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                Đã hoàn thành ({groupedBookings.completed.length})
+              </h3>
+              <div className="space-y-4">
+                {groupedBookings.completed.map((booking) => {
+                  const { date, time } = formatDateTime(booking.appointmentTime)
+                  return (
+                    <div key={booking.bookingId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getStatusColor(booking.bookingStatus)}`}>
+                              {getStatusText(booking.bookingStatus)}
+                            </span>
+                          </div>
+                          
+                          <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
+                            {booking.serviceName}
+                          </h4>
+                          
+                          <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
+                            <div className="flex items-center">
+                              <CalendarIcon className="h-4 w-4 mr-2" />
+                              {date}
+                            </div>
+                            <div className="flex items-center">
+                              <ClockIcon className="h-4 w-4 mr-2" />
+                              {time}
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <p className="text-sm font-secondary text-gray-600">
+                              <strong>Mã đặt hẹn:</strong> #{booking.bookingId}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="ml-6">
+                          <button
+                            onClick={() => setActiveView('test-results')}
+                            className="px-4 py-2 bg-primary text-text-light rounded-lg hover:bg-primary-600 transition-colors font-secondary text-sm"
+                          >
+                            Xem kết quả
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   const renderContent = () => {
     switch (activeView) {
       case 'test-results':
         return renderTestResultsView()
+      case 'my-bookings':
+        return renderMyBookingsView()
       case 'menstrual-cycle':
         return renderMenstrualCycleView()
       case 'account':

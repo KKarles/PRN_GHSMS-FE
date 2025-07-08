@@ -11,6 +11,7 @@ import BlogPost from './components/BlogPost'
 import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
+import ServiceBookingPage from './components/ServiceBookingPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // Layout component for pages with header and footer
@@ -68,6 +69,15 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
+
+          <Route path="/book-service" element={
+            <ProtectedRoute>
+              <Layout>
+                <ServiceBookingPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
 
           {/* Registration Route */}
           <Route path="/register" element={

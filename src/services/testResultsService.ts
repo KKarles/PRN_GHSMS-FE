@@ -95,3 +95,13 @@ export const downloadTestResult = async (resultId: number): Promise<Blob> => {
     throw error
   }
 }
+
+// Add cancelBooking function
+export const cancelBooking = async (bookingId: number): Promise<void> => {
+  try {
+    await api.delete(`/api/testbooking/${bookingId}`)
+  } catch (error) {
+    console.error('Failed to cancel booking:', error)
+    throw error
+  }
+}
