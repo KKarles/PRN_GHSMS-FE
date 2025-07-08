@@ -1,40 +1,57 @@
 import api from './api'
 
-// Types for test results
+// Types for test results (matching actual API response)
 export interface TestResultDetail {
   analyteName: string
-  result: string
+  value: string  // API uses 'value' not 'result'
+  unit: string | null
   referenceRange: string
-  status: 'Normal' | 'Abnormal' | 'Borderline'
-  notes?: string
+  flag: 'Normal' | 'Abnormal' | 'Borderline'  // API uses 'flag' not 'status'
 }
 
 export interface TestResult {
-  id: number
+  resultId: number  // API uses 'resultId' not 'id'
   bookingId: number
+  customerName: string
   serviceName: string
-  testDate: string
-  status: 'Pending' | 'Processing' | 'Ready'
-  results: TestResultDetail[]
-  downloadUrl?: string
+  notes: string
+  issuedByName: string
+  issuedAt: string  // API uses 'issuedAt' not 'testDate'
+  resultDetails: TestResultDetail[]  // API uses 'resultDetails' not 'results'
 }
 
 export interface TestBooking {
-  id: number
+  bookingId: number  // API uses 'bookingId' not 'id'
+  customerId: number
+  customerName: string
   serviceId: number
   serviceName: string
+  servicePrice: number  // API includes price
   appointmentTime: string
   bookingStatus: 'Booked' | 'SampleCollected' | 'Processing' | 'ResultReady'
   isPaid: boolean
-  price: number
-  createdAt: string
+  bookedAt: string  // API uses 'bookedAt' not 'createdAt'
+  resultDate: string | null
+}
+
+// API Response wrapper types
+export interface ApiResponse<T> {
+  success: boolean
+  message: string
+  data: T
 }
 
 // Test results service functions
 export const getMyTestResults = async (): Promise<TestResult[]> => {
   try {
-    const response = await api.get('/api/testbooking/my-results')
-    return response.data
+    const response = await api.get<ApiResponse<TestResult[]>>('/api/testresult/my-results')
+    
+    // Handle the wrapped API response format
+    if (response.data.success) {
+      return response.data.data  // Extract the actual data array
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch test results')
+    }
   } catch (error) {
     console.error('Failed to fetch test results:', error)
     throw error
@@ -43,8 +60,14 @@ export const getMyTestResults = async (): Promise<TestResult[]> => {
 
 export const getMyBookings = async (): Promise<TestBooking[]> => {
   try {
-    const response = await api.get('/api/testbooking/my-bookings')
-    return response.data
+    const response = await api.get<ApiResponse<TestBooking[]>>('/api/testbooking/my-bookings')
+    
+    // Handle the wrapped API response format
+    if (response.data.success) {
+      return response.data.data  // Extract the actual data array
+    } else {
+      throw new Error(response.data.message || 'Failed to fetch bookings')
+    }
   } catch (error) {
     console.error('Failed to fetch bookings:', error)
     throw error

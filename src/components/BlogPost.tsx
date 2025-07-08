@@ -7,6 +7,7 @@ interface BlogPostProps {
 
 const BlogPost: React.FC<BlogPostProps> = ({ postId }) => {
   // Mock blog post data - this would come from your .NET API via GET /api/blog/posts/{id}
+  // TODO: Use postId to fetch specific blog post when React Router params are implemented
   const post = {
     id: 1,
     title: "Hiểu đúng về HPV và tầm quan trọng của việc tầm soát",

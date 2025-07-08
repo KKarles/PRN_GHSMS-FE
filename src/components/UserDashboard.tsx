@@ -8,12 +8,19 @@ import {
   ChevronUpIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
+import { getMyTestResults, getMyBookings, type TestResult, type TestBooking } from '../services/testResultsService'
 
 const UserDashboard: React.FC = () => {
   const { user } = useAuth()
   const [activeView, setActiveView] = useState('dashboard')
   const [expandedResult, setExpandedResult] = useState<number | null>(null)
   const [pillReminder, setPillReminder] = useState(false)
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [bookings, setBookings] = useState<TestBooking[]>([])
+  const [isLoadingResults, setIsLoadingResults] = useState(false)
+  const [resultsError, setResultsError] = useState<string | null>(null)
+  
+  // TODO: Use bookings data for booking history or dashboard statistics
 
   // Initialize pill reminder from user profile
   useEffect(() => {
@@ -22,29 +29,45 @@ const UserDashboard: React.FC = () => {
     }
   }, [user])
 
-  const testResults = [
-    {
-      id: 1,
-      title: "Gói Xét Nghiệm STIs Cơ Bản - 01/07/2025",
-      status: "Đã có kết quả",
-      date: "01/07/2025",
-      results: [
-        { test: "HIV", result: "Âm tính", status: "normal" },
-        { test: "Syphilis", result: "Âm tính", status: "normal" },
-        { test: "Chlamydia", result: "Âm tính", status: "normal" },
-        { test: "Gonorrhea", result: "Âm tính", status: "normal" }
-      ]
-    },
-    {
-      id: 2,
-      title: "Xét nghiệm HIV Combo - 15/06/2025",
-      status: "Đã có kết quả",
-      date: "15/06/2025",
-      results: [
-        { test: "HIV Combo", result: "Âm tính", status: "normal" }
-      ]
+  // Fetch test results when component mounts or when switching to test results view
+  useEffect(() => {
+    if (activeView === 'test-results' || activeView === 'dashboard') {
+      fetchTestResults()
+      fetchBookings()
     }
-  ]
+  }, [activeView])
+
+  const fetchTestResults = async () => {
+    setIsLoadingResults(true)
+    setResultsError(null)
+    try {
+      const results = await getMyTestResults()
+      setTestResults(results)
+    } catch (error: any) {
+      console.error('Failed to fetch test results:', error)
+      if (error.response?.status === 401) {
+        setResultsError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+      } else if (error.response?.status === 403) {
+        setResultsError('Bạn không có quyền truy cập kết quả xét nghiệm.')
+      } else {
+        setResultsError('Không thể tải kết quả xét nghiệm. Vui lòng thử lại sau.')
+      }
+    } finally {
+      setIsLoadingResults(false)
+    }
+  }
+
+  const fetchBookings = async () => {
+    try {
+      const userBookings = await getMyBookings()
+      setBookings(userBookings)
+      // TODO: Use bookings data for dashboard statistics or booking history
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error)
+    }
+  }
+
+  // Remove hardcoded test results - now using real API data
 
   const sidebarItems = [
     { id: 'dashboard', text: 'Tổng quan', icon: HomeIcon },
@@ -60,9 +83,13 @@ const UserDashboard: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
           <h3 className="font-primary font-semibold text-text-dark mb-4">Xét nghiệm gần đây</h3>
-          <p className="font-secondary text-gray-600 mb-4">
-            Bạn có {testResults.length} kết quả xét nghiệm
-          </p>
+          {isLoadingResults ? (
+            <p className="font-secondary text-gray-600 mb-4">Đang tải...</p>
+          ) : (
+            <p className="font-secondary text-gray-600 mb-4">
+              Bạn có {testResults.length} kết quả xét nghiệm
+            </p>
+          )}
           <button 
             onClick={() => setActiveView('test-results')}
             className="text-primary font-secondary font-semibold hover:text-primary-600"
@@ -89,9 +116,34 @@ const UserDashboard: React.FC = () => {
 
   const renderTestResultsView = () => (
     <div className="space-y-6">
-      <h2 className="text-2xl font-primary font-semibold text-text-dark">Kết quả Xét nghiệm của bạn</h2>
-      
-      {testResults.length === 0 ? (
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-primary font-semibold text-text-dark">Kết quả Xét nghiệm của bạn</h2>
+        <button 
+          onClick={fetchTestResults}
+          className="text-primary font-secondary font-semibold hover:text-primary-600 transition-colors"
+          disabled={isLoadingResults}
+        >
+          {isLoadingResults ? 'Đang tải...' : 'Làm mới'}
+        </button>
+      </div>
+
+      {/* Error Message */}
+      {resultsError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600 font-secondary text-sm">{resultsError}</p>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoadingResults && !resultsError && (
+        <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-border-subtle">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="font-secondary text-gray-600">Đang tải kết quả xét nghiệm...</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoadingResults && !resultsError && testResults.length === 0 && (
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-border-subtle">
           <h3 className="text-xl font-primary font-semibold text-text-dark mb-4">
             Bắt đầu hành trình sức khỏe của bạn
@@ -103,41 +155,74 @@ const UserDashboard: React.FC = () => {
             Đặt lịch xét nghiệm
           </button>
         </div>
-      ) : (
+      )}
+
+      {/* Test Results List */}
+      {!isLoadingResults && !resultsError && testResults.length > 0 && (
         <div className="space-y-4">
           {testResults.map((result) => (
-            <div key={result.id} className="bg-white rounded-2xl shadow-sm border border-border-subtle overflow-hidden">
+            <div key={result.resultId} className="bg-white rounded-2xl shadow-sm border border-border-subtle overflow-hidden">
               <button
-                onClick={() => setExpandedResult(expandedResult === result.id ? null : result.id)}
-                className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50"
+                onClick={() => setExpandedResult(expandedResult === result.resultId ? null : result.resultId)}
+                className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
                 <div>
-                  <h3 className="font-primary font-semibold text-text-dark">{result.title}</h3>
-                  <p className="font-secondary text-green-600 text-sm mt-1">{result.status}</p>
+                  <h3 className="font-primary font-semibold text-text-dark">
+                    {result.serviceName} - {new Date(result.issuedAt).toLocaleDateString('vi-VN')}
+                  </h3>
+                  <p className="font-secondary text-green-600 text-sm mt-1">
+                    Đã có kết quả
+                  </p>
+                  {result.notes && (
+                    <p className="font-secondary text-gray-500 text-sm mt-1">{result.notes}</p>
+                  )}
+                  <p className="font-secondary text-gray-400 text-xs mt-1">
+                    Được phát hành bởi: {result.issuedByName}
+                  </p>
                 </div>
-                {expandedResult === result.id ? (
+                {expandedResult === result.resultId ? (
                   <ChevronUpIcon className="h-5 w-5 text-gray-400" />
                 ) : (
                   <ChevronDownIcon className="h-5 w-5 text-gray-400" />
                 )}
               </button>
               
-              {expandedResult === result.id && (
+              {expandedResult === result.resultId && result.resultDetails && result.resultDetails.length > 0 && (
                 <div className="px-6 pb-6 border-t border-gray-100">
                   <div className="mt-4">
                     <h4 className="font-primary font-semibold text-text-dark mb-3">Chi tiết kết quả:</h4>
                     <div className="space-y-2">
-                      {result.results.map((test, index) => (
+                      {result.resultDetails.map((detail, index) => (
                         <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                          <span className="font-secondary text-text-dark">{test.test}</span>
-                          <span className={`font-secondary font-semibold ${
-                            test.status === 'normal' ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {test.result}
-                          </span>
+                          <div>
+                            <span className="font-secondary text-text-dark">{detail.analyteName}</span>
+                            {detail.referenceRange && (
+                              <span className="font-secondary text-gray-500 text-sm block">
+                                Tham chiếu: {detail.referenceRange}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <span className={`font-secondary font-semibold ${
+                              detail.flag === 'Normal' ? 'text-green-600' : 
+                              detail.flag === 'Abnormal' ? 'text-red-600' : 'text-yellow-600'
+                            }`}>
+                              {detail.value}
+                              {detail.unit && ` ${detail.unit}`}
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>
+                    
+                    {/* Download Button */}
+                    {result.downloadUrl && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <button className="bg-primary text-text-light px-4 py-2 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors">
+                          Tải xuống kết quả PDF
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
