@@ -9,6 +9,7 @@ import LandingPage from './components/LandingPage'
 import Blog from './components/Blog'
 import BlogPost from './components/BlogPost'
 import Login from './components/Login'
+import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -68,25 +69,10 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* Placeholder routes for future implementation */}
+          {/* Registration Route */}
           <Route path="/register" element={
             <AuthLayout>
-              <div className="min-h-screen bg-background-light flex items-center justify-center">
-                <div className="text-center">
-                  <h2 className="text-2xl font-primary font-semibold text-text-dark mb-4">
-                    Trang Dang Ky
-                  </h2>
-                  <p className="font-secondary text-gray-600 mb-6">
-                    Trang dang ky se duoc trien khai sau
-                  </p>
-                  <button 
-                    onClick={() => window.history.back()}
-                    className="bg-primary text-text-light px-6 py-2 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors"
-                  >
-                    Quay lai
-                  </button>
-                </div>
-              </div>
+              <Register />
             </AuthLayout>
           } />
 
