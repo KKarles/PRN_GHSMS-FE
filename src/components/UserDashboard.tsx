@@ -5,6 +5,7 @@ import {
   CalendarIcon, 
   UserIcon,
   ClockIcon,
+  CheckCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline'
@@ -79,40 +80,196 @@ const UserDashboard: React.FC = () => {
   ]
 
   const renderDashboardView = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-primary font-semibold text-text-dark">Tổng quan</h2>
-      
-      <div className="grid md:grid-cols-2 gap-6">
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-3xl font-primary font-semibold text-text-dark mb-2">
+          Chào mừng trở lại, {user?.firstName || 'Người dùng'}!
+        </h1>
+        <p className="font-secondary text-gray-600">
+          Quản lý sức khỏe của bạn một cách dễ dàng và hiệu quả
+        </p>
+      </div>
+
+      {/* Quick Stats Grid */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Upcoming Appointments */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
-          <h3 className="font-primary font-semibold text-text-dark mb-4">Xét nghiệm gần đây</h3>
-          {isLoadingResults ? (
-            <p className="font-secondary text-gray-600 mb-4">Đang tải...</p>
-          ) : (
-            <p className="font-secondary text-gray-600 mb-4">
-              Bạn có {testResults.length} kết quả xét nghiệm
-            </p>
-          )}
+          <div className="flex items-center mb-4">
+            <div className="bg-primary-light rounded-lg p-3 mr-4">
+              <CalendarIcon className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-primary font-semibold text-text-dark">Lịch Hẹn Sắp Tới</h3>
+            </div>
+          </div>
+          <div className="mb-4">
+            {bookings.filter(b => b.bookingStatus === 'Booked').length > 0 ? (
+              <div>
+                <p className="text-2xl font-primary font-bold text-text-dark">
+                  {bookings.filter(b => b.bookingStatus === 'Booked').length}
+                </p>
+                <p className="font-secondary text-gray-600 text-sm">
+                  lịch hẹn sắp tới
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-lg font-primary font-semibold text-gray-500">
+                  Không có lịch hẹn
+                </p>
+                <p className="font-secondary text-gray-600 text-sm">
+                  Đặt lịch hẹn mới ngay
+                </p>
+              </div>
+            )}
+          </div>
           <button 
-            onClick={() => setActiveView('test-results')}
-            className="text-primary font-secondary font-semibold hover:text-primary-600"
+            onClick={() => setActiveView('my-bookings')}
+            className="text-primary font-secondary font-semibold hover:text-primary-600 text-sm"
           >
-            Xem tất cả →
+            Xem tất cả lịch hẹn →
           </button>
         </div>
 
+        {/* Recent Results */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
-          <h3 className="font-primary font-semibold text-text-dark mb-4">Chu kỳ kinh nguyệt</h3>
-          <p className="font-secondary text-gray-600 mb-4">
-            Ngày rụng trứng dự kiến: 20/07/2025
-          </p>
+          <div className="flex items-center mb-4">
+            <div className="bg-accent rounded-lg p-3 mr-4">
+              <DocumentTextIcon className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-primary font-semibold text-text-dark">Kết Quả Gần Nhất</h3>
+            </div>
+          </div>
+          <div className="mb-4">
+            {isLoadingResults ? (
+              <p className="font-secondary text-gray-600">Đang tải...</p>
+            ) : testResults.length > 0 ? (
+              <div>
+                <p className="text-2xl font-primary font-bold text-text-dark">
+                  {testResults.length}
+                </p>
+                <p className="font-secondary text-gray-600 text-sm">
+                  kết quả có sẵn
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-lg font-primary font-semibold text-gray-500">
+                  Chưa có kết quả
+                </p>
+                <p className="font-secondary text-gray-600 text-sm">
+                  Đặt xét nghiệm để có kết quả
+                </p>
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={() => setActiveView('test-results')}
+            className="text-primary font-secondary font-semibold hover:text-primary-600 text-sm"
+          >
+            Xem tất cả kết quả →
+          </button>
+        </div>
+
+        {/* Cycle Predictions */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+          <div className="flex items-center mb-4">
+            <div className="bg-secondary rounded-lg p-3 mr-4">
+              <CalendarIcon className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-primary font-semibold text-text-dark">Dự Báo Chu Kỳ</h3>
+            </div>
+          </div>
+          <div className="mb-4">
+            <p className="font-secondary text-gray-600 text-sm mb-1">
+              Kỳ kinh tiếp theo:
+            </p>
+            <p className="text-lg font-primary font-semibold text-text-dark">
+              20/07/2025
+            </p>
+          </div>
           <button 
             onClick={() => setActiveView('menstrual-cycle')}
-            className="text-primary font-secondary font-semibold hover:text-primary-600"
+            className="text-primary font-secondary font-semibold hover:text-primary-600 text-sm"
           >
             Theo dõi chu kỳ →
           </button>
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={() => window.location.href = '/book-service'}
+          className="flex items-center justify-center bg-primary text-text-light px-8 py-4 rounded-2xl font-secondary font-bold hover:bg-primary-600 transition-colors"
+        >
+          <svg className="h-6 w-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Đặt Lịch Xét Nghiệm Mới
+        </button>
+        <button
+          onClick={() => setActiveView('menstrual-cycle')}
+          className="flex items-center justify-center bg-white border-2 border-primary text-primary px-8 py-4 rounded-2xl font-secondary font-bold hover:bg-primary-light transition-colors"
+        >
+          <CalendarIcon className="h-6 w-6 mr-3" />
+          Theo Dõi Chu Kỳ
+        </button>
+      </div>
+
+      {/* Recent Bookings Preview */}
+      {bookings.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-primary font-semibold text-text-dark">
+              Hoạt Động Gần Đây
+            </h3>
+            <button 
+              onClick={() => setActiveView('my-bookings')}
+              className="text-primary font-secondary font-semibold hover:text-primary-600 text-sm"
+            >
+              Xem tất cả →
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {bookings.slice(0, 3).map((booking) => (
+              <div key={booking.bookingId} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-center">
+                  <div className="mr-4">
+                    {booking.bookingStatus === 'Processing' ? (
+                      <ClockIcon className="h-8 w-8 text-yellow-500" />
+                    ) : booking.bookingStatus === 'ResultReady' ? (
+                      <CheckCircleIcon className="h-8 w-8 text-green-500" />
+                    ) : (
+                      <CalendarIcon className="h-8 w-8 text-blue-500" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-primary font-semibold text-text-dark">
+                      {booking.serviceName}
+                    </h4>
+                    <p className="font-secondary text-gray-600 text-sm">
+                      Trạng thái: {booking.bookingStatus === 'Processing' ? 'Đang xử lý' : 
+                                  booking.bookingStatus === 'ResultReady' ? 'Đã có kết quả' : 
+                                  'Đã đặt hẹn'}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setActiveView(booking.bookingStatus === 'ResultReady' ? 'test-results' : 'my-bookings')}
+                  className="text-primary font-secondary font-semibold hover:text-primary-600 text-sm"
+                >
+                  Xem
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 
