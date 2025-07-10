@@ -12,6 +12,10 @@ import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
 import ServiceBookingPage from './components/ServiceBookingPage'
+import StaffDashboard from './components/StaffDashboard'
+import StaffReports from './components/StaffReports'
+import CustomerLookup from './components/CustomerLookup'
+import SampleManagement from './components/SampleManagement'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // Layout component for pages with header and footer
@@ -78,6 +82,30 @@ function App() {
             </ProtectedRoute>
           } />
 
+          {/* Staff Routes */}
+          <Route path="/staff/dashboard" element={
+            <ProtectedRoute>
+              <StaffDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/staff/reports" element={
+            <ProtectedRoute>
+              <StaffReports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/staff/customers" element={
+            <ProtectedRoute>
+              <CustomerLookup />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/staff/samples" element={
+            <ProtectedRoute>
+              <SampleManagement />
+            </ProtectedRoute>
+          } />
 
           {/* Registration Route */}
           <Route path="/register" element={

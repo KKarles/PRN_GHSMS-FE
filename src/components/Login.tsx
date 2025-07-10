@@ -42,8 +42,17 @@ const Login: React.FC = () => {
         // Update auth context
         login(response.token, response.user)
         
-        // Redirect to intended page or dashboard
-        navigate(from, { replace: true })
+        // Role-based redirect
+        const userRoles = response.user.roles || []
+        let defaultRedirect = '/dashboard' // Default for customers
+        
+        if (userRoles.includes('Staff') || userRoles.includes('Manager') || userRoles.includes('Admin')) {
+          defaultRedirect = '/staff/dashboard'
+        }
+        
+        // Use intended page or role-based default
+        const redirectTo = location.state?.from?.pathname || defaultRedirect
+        navigate(redirectTo, { replace: true })
       } else {
         setError(response.message || 'Đăng nhập thất bại')
       }
