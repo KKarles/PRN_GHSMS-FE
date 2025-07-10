@@ -51,6 +51,12 @@ const Header: React.FC = () => {
                   Blog
                 </button>
                 <button 
+                  onClick={() => navigate('/questions')}
+                  className="text-text-dark hover:text-primary font-secondary"
+                >
+                  Câu hỏi KH
+                </button>
+                <button 
                   onClick={() => navigate('/about')}
                   className="text-text-dark hover:text-primary font-secondary"
                 >

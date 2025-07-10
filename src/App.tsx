@@ -13,6 +13,9 @@ import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
 import ServiceBookingPage from './components/ServiceBookingPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import QuestionsPage from './components/QuestionsPage'
+import QuestionDetailPage from './components/QuestionDetailPage'
+import AskQuestionPage from './components/AskQuestionPage'
 
 // Layout component for pages with header and footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -53,6 +56,24 @@ function App() {
               <BlogPost />
             </Layout>
           } />
+
+        <Route path="/questions" element={
+          <Layout>
+            <QuestionsPage />
+          </Layout>
+        } />
+
+        <Route path="/questions/ask" element={
+          <Layout>
+            <AskQuestionPage />
+          </Layout>
+        } />
+
+        <Route path="/questions/:questionId" element={
+          <Layout>
+            <QuestionDetailPage />
+          </Layout>
+        } />
 
           {/* Auth Routes (no header/footer) */}
           <Route path="/login" element={
