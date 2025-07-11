@@ -1,64 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  BeakerIcon,
-  UserCircleIcon,
-  ArrowLeftOnRectangleIcon
-} from '@heroicons/react/24/outline'
+import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import ConsultantNavigation from './ConsultantNavigation'
 
 const ConsultantDashboard: React.FC = () => {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  const { user } = useAuth()
 
   return (
     <div className="min-h-screen bg-background-light">
-      {/* Consultant Navigation */}
-      <nav className="bg-white shadow-sm border-b border-border-subtle">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Navigation Items */}
-            <div className="flex space-x-8">
-              <button
-                onClick={() => navigate('/consultant/dashboard')}
-                className="flex items-center px-3 py-2 rounded-md text-sm font-secondary font-medium bg-primary-light text-primary border-b-2 border-primary"
-              >
-                <BeakerIcon className="h-5 w-5 mr-2" />
-                Tổng quan
-              </button>
-              <button
-                onClick={() => navigate('/consultant/samples')}
-                className="flex items-center px-3 py-2 rounded-md text-sm font-secondary font-medium text-gray-600 hover:text-primary hover:bg-primary-light"
-              >
-                <BeakerIcon className="h-5 w-5 mr-2" />
-                Quản lý Mẫu
-              </button>
-              <button
-                onClick={() => navigate('/consultant/my-profile')}
-                className="flex items-center px-3 py-2 rounded-md text-sm font-secondary font-medium text-gray-600 hover:text-primary hover:bg-primary-light"
-              >
-                <UserCircleIcon className="h-5 w-5 mr-2" />
-                Hồ Sơ Của Tôi
-              </button>
-            </div>
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center px-3 py-2 text-sm font-secondary font-medium text-gray-600 hover:text-red-600 transition-colors"
-            >
-              <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
-              Đăng xuất
-            </button>
-          </div>
-        </div>
-      </nav>
-
+      <ConsultantNavigation />
+      
       {/* Dashboard Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
@@ -68,24 +18,29 @@ const ConsultantDashboard: React.FC = () => {
               Chào mừng, {user?.firstName} {user?.lastName}
             </h1>
             <p className="font-secondary text-gray-600">
-              Dashboard Tư vấn viên - Quản lý mẫu xét nghiệm
+              Dashboard Tư vấn viên - Hệ thống tư vấn sức khỏe
             </p>
           </div>
 
-          {/* Quick Actions - Only Sample Management */}
+          {/* Simple Overview Content - No Quick Actions */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
             <h2 className="text-xl font-primary font-semibold text-text-dark mb-6">
-              Thao tác nhanh
+              Tổng quan
             </h2>
             
-            <div className="flex justify-center">
-              <button 
-                onClick={() => navigate('/consultant/samples')}
-                className="flex items-center justify-center p-6 border-2 border-primary text-primary rounded-xl hover:bg-primary-light transition-colors w-64"
-              >
-                <BeakerIcon className="h-8 w-8 mr-4" />
-                <span className="font-secondary font-semibold text-lg">Quản lý Mẫu</span>
-              </button>
+            {/* Empty content area with same styling as other dashboards */}
+            <div className="text-center py-12">
+              <div className="h-16 w-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-primary font-semibold text-gray-600 mb-2">
+                Dashboard Tư vấn viên
+              </h3>
+              <p className="font-secondary text-gray-500">
+                Khu vực làm việc dành cho tư vấn viên
+              </p>
             </div>
           </div>
         </div>

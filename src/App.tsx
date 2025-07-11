@@ -26,6 +26,7 @@ import AdminProfile from './components/AdminProfile'
 import ManagerReports from './components/ManagerReports'
 import ManagerProfile from './components/ManagerProfile'
 import ManagerQualificationManagement from './components/ManagerQualificationManagement'
+import ConsultantProfile from './components/ConsultantProfile'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // Layout component for pages with header and footer
@@ -130,15 +131,9 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/consultant/samples" element={
-            <ProtectedRoute>
-              <SampleManagement />
-            </ProtectedRoute>
-          } />
-
           <Route path="/consultant/my-profile" element={
             <ProtectedRoute>
-              <StaffProfile />
+              <ConsultantProfile />
             </ProtectedRoute>
           } />
 
