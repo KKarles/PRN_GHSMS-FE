@@ -17,9 +17,7 @@ const StaffNavigation: React.FC = () => {
 
   const navItems = [
     { path: '/staff/dashboard', label: 'Tổng quan', icon: HomeIcon },
-    { path: '/staff/customers', label: 'Khách hàng', icon: UserGroupIcon },
     { path: '/staff/samples', label: 'Quản lý Mẫu', icon: BeakerIcon },
-    { path: '/staff/reports', label: 'Báo cáo', icon: ChartBarIcon },
     { path: '/staff/my-profile', label: 'Hồ Sơ Của Tôi', icon: UserCircleIcon }
   ]
 

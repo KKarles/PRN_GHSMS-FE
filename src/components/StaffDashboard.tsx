@@ -4,9 +4,7 @@ import {
   CalendarIcon,
   ClockIcon,
   BeakerIcon,
-  ExclamationTriangleIcon,
-  UserGroupIcon,
-  ChartBarIcon
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import StaffNavigation from './StaffNavigation'
@@ -231,21 +229,7 @@ const StaffDashboard: React.FC = () => {
             <h3 className="text-xl font-primary font-semibold text-text-dark mb-6">
               Thao tác nhanh
             </h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              <button 
-                onClick={() => navigate('/staff/customers')}
-                className="flex items-center justify-center p-4 border-2 border-primary text-primary rounded-xl hover:bg-primary-light transition-colors"
-              >
-                <UserGroupIcon className="h-6 w-6 mr-3" />
-                <span className="font-secondary font-semibold">Quản lý Khách hàng</span>
-              </button>
-              <button 
-                onClick={() => navigate('/staff/reports')}
-                className="flex items-center justify-center p-4 border-2 border-primary text-primary rounded-xl hover:bg-primary-light transition-colors"
-              >
-                <ChartBarIcon className="h-6 w-6 mr-3" />
-                <span className="font-secondary font-semibold">Xem Báo cáo</span>
-              </button>
+            <div className="grid md:grid-cols-1 gap-4 max-w-md">
               <button 
                 onClick={() => navigate('/staff/samples')}
                 className="flex items-center justify-center p-4 border-2 border-primary text-primary rounded-xl hover:bg-primary-light transition-colors"

@@ -100,7 +100,8 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/staff/reports" element={
+          {/* Removed staff access to reports and customer management - not their job */}
+          {/* <Route path="/staff/reports" element={
             <ProtectedRoute>
               <StaffReports />
             </ProtectedRoute>
@@ -110,7 +111,7 @@ function App() {
             <ProtectedRoute>
               <CustomerLookup />
             </ProtectedRoute>
-          } />
+          } /> */}
 
           <Route path="/staff/samples" element={
             <ProtectedRoute>
