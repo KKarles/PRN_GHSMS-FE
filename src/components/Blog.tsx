@@ -10,7 +10,7 @@ interface BlogProps {
 
 const Blog: React.FC<BlogProps> = ({ className = '', initialPostId }) => {
   const [currentView, setCurrentView] = useState<'listing' | 'detail'>('listing')
-  const [selectedPost, setSelectedPost] = useState<BlogPostSummary | null>(null)
+  const [, setSelectedPost] = useState<BlogPostSummary | null>(null)
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
 
   // Handle initial post ID if provided

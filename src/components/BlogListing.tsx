@@ -4,7 +4,7 @@ import {
   CalendarIcon, 
   UserIcon, 
   ClockIcon,
-  FunnelIcon,
+//   FunnelIcon,
   ChevronLeftIcon,
   ChevronRightIcon 
 } from '@heroicons/react/24/outline'
