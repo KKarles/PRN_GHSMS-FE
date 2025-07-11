@@ -16,6 +16,13 @@ import StaffDashboard from './components/StaffDashboard'
 import StaffReports from './components/StaffReports'
 import CustomerLookup from './components/CustomerLookup'
 import SampleManagement from './components/SampleManagement'
+import StaffProfile from './components/StaffProfile'
+import ConsultantDashboard from './components/ConsultantDashboard'
+import ManagerDashboard from './components/ManagerDashboard'
+import AdminDashboard from './components/AdminDashboard'
+import AdminAccountManagement from './components/AdminAccountManagement'
+import AdminQualificationManagement from './components/AdminQualificationManagement'
+import AdminProfile from './components/AdminProfile'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // Layout component for pages with header and footer
@@ -104,6 +111,75 @@ function App() {
           <Route path="/staff/samples" element={
             <ProtectedRoute>
               <SampleManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/staff/my-profile" element={
+            <ProtectedRoute>
+              <StaffProfile />
+            </ProtectedRoute>
+          } />
+
+          {/* Consultant Routes */}
+          <Route path="/consultant/dashboard" element={
+            <ProtectedRoute>
+              <ConsultantDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/consultant/samples" element={
+            <ProtectedRoute>
+              <SampleManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/consultant/my-profile" element={
+            <ProtectedRoute>
+              <StaffProfile />
+            </ProtectedRoute>
+          } />
+
+          {/* Manager Routes */}
+          <Route path="/manager/dashboard" element={
+            <ProtectedRoute>
+              <ManagerDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/samples" element={
+            <ProtectedRoute>
+              <SampleManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/my-profile" element={
+            <ProtectedRoute>
+              <StaffProfile />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/accounts" element={
+            <ProtectedRoute>
+              <AdminAccountManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/qualifications" element={
+            <ProtectedRoute>
+              <AdminQualificationManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/my-profile" element={
+            <ProtectedRoute>
+              <AdminProfile />
             </ProtectedRoute>
           } />
 

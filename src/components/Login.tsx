@@ -42,11 +42,17 @@ const Login: React.FC = () => {
         // Update auth context
         login(response.token, response.user)
         
-        // Role-based redirect
+        // Role-based redirect - each role gets their own dashboard
         const userRoles = response.user.roles || []
         let defaultRedirect = '/dashboard' // Default for customers
         
-        if (userRoles.includes('Staff') || userRoles.includes('Manager') || userRoles.includes('Admin')) {
+        if (userRoles.includes('Admin')) {
+          defaultRedirect = '/admin/dashboard'
+        } else if (userRoles.includes('Manager')) {
+          defaultRedirect = '/manager/dashboard'
+        } else if (userRoles.includes('Consultant')) {
+          defaultRedirect = '/consultant/dashboard'
+        } else if (userRoles.includes('Staff')) {
           defaultRedirect = '/staff/dashboard'
         }
         

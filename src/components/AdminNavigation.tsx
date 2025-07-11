@@ -3,24 +3,22 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { 
   HomeIcon, 
   UserGroupIcon, 
-  ChartBarIcon,
-  BeakerIcon,
+  AcademicCapIcon,
   UserCircleIcon,
   ArrowLeftOnRectangleIcon 
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 
-const StaffNavigation: React.FC = () => {
+const AdminNavigation: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { logout } = useAuth()
 
   const navItems = [
-    { path: '/staff/dashboard', label: 'Tổng quan', icon: HomeIcon },
-    { path: '/staff/customers', label: 'Khách hàng', icon: UserGroupIcon },
-    { path: '/staff/samples', label: 'Quản lý Mẫu', icon: BeakerIcon },
-    { path: '/staff/reports', label: 'Báo cáo', icon: ChartBarIcon },
-    { path: '/staff/my-profile', label: 'Hồ Sơ Của Tôi', icon: UserCircleIcon }
+    { path: '/admin/dashboard', label: 'Tổng quan', icon: HomeIcon },
+    { path: '/admin/accounts', label: 'Quản lý Tài khoản', icon: UserGroupIcon },
+    { path: '/admin/qualifications', label: 'Quản lý Chứng chỉ', icon: AcademicCapIcon },
+    { path: '/admin/my-profile', label: 'Hồ Sơ Của Tôi', icon: UserCircleIcon }
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -69,4 +67,4 @@ const StaffNavigation: React.FC = () => {
   )
 }
 
-export default StaffNavigation
+export default AdminNavigation
