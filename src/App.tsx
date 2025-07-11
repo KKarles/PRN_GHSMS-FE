@@ -13,6 +13,11 @@ import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
 import ServiceBookingPage from './components/ServiceBookingPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import ServicesPage from './components/ServicesPage'
+import FeedbackPage from './components/Feedback'
+import EditFeedbackPage from './components/EditFeedbackPage'
+import FeedbackListPage from './components/FeedbackListPage'
+
 
 // Layout component for pages with header and footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -106,6 +111,30 @@ function App() {
               </div>
             </AuthLayout>
           } />
+
+          <Route path="/services" element={
+          <Layout>
+            <ServicesPage />
+          </Layout>
+        } />
+
+        <Route path="/create-feedback/:serviceId" element={
+        <Layout>
+          <FeedbackPage />
+        </Layout>
+      } />
+
+      <Route path="/edit-feedback/:feedbackId" element={
+        <Layout>
+          <EditFeedbackPage />
+        </Layout>
+      } />
+
+      <Route path="/feedbacks/:serviceId" element={
+        <Layout>
+          <FeedbackListPage />
+        </Layout>
+      } />
 
           {/* 404 Page */}
           <Route path="*" element={
