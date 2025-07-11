@@ -44,4 +44,9 @@ export const getFeedbacksByService = async (serviceId: number) => {
   return response.data
 }
 
+export const getUserById = async (userId: number): Promise<{ firstName: string; lastName: string }> => {
+  const response = await api.get(`/api/users/${userId}`)
+  return response.data.data
+}
+
 

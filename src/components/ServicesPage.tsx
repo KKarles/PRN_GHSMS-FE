@@ -4,6 +4,7 @@ import type { Service } from '../services/serviceService'
 import { Link } from 'react-router-dom'
 import { getFeedbackByUserAndService } from '../services/feedbackService'
 import { isAuthenticated } from '../services/authService'
+import { motion } from 'framer-motion'
 
 const truncateWords = (text: string, maxWords: number): string => {
   const words = text.split(/\s+/)
@@ -32,7 +33,6 @@ const ServicesPage: React.FC = () => {
 
         if (isAuthenticated() && userId) {
           const feedbackMap: Record<number, number> = {}
-
           for (const s of data) {
             try {
               const feedback = await getFeedbackByUserAndService(userId, s.serviceId)
@@ -45,7 +45,6 @@ const ServicesPage: React.FC = () => {
               }
             }
           }
-
           setFeedbacks(feedbackMap)
         }
       } catch (err: any) {
@@ -58,49 +57,55 @@ const ServicesPage: React.FC = () => {
     fetchServices()
   }, [userId])
 
-  if (loading) return <p className="text-center">Đang tải dữ liệu dịch vụ...</p>
-  if (error) return <p className="text-center text-red-500">Lỗi: {error}</p>
+  if (loading) return <p className="text-center text-lg mt-10">⏳ Đang tải dữ liệu dịch vụ...</p>
+  if (error) return <p className="text-center text-red-500 mt-10">❌ Lỗi: {error}</p>
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Danh sách dịch vụ</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => (
-          <div key={service.serviceId} className="border rounded-lg p-4 shadow hover:shadow-lg transition">
-            <h2 className="text-xl font-semibold">{service.serviceName}</h2>
-            <p className="text-gray-600 mt-2">
-              {truncateWords(service.description, 10)}
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <h1 className="text-4xl font-bold mb-10 text-center text-gray-800">🌿 Danh sách dịch vụ</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {services.map((service, index) => (
+          <motion.div
+            key={service.serviceId}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+            className="bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-1 p-6"
+          >
+            <h2 className="text-2xl font-semibold text-indigo-700">{service.serviceName}</h2>
+            <p className="text-gray-600 mt-2 italic">{truncateWords(service.description, 10)}</p>
+            <p className="mt-3 text-lg text-blue-600 font-semibold">
+              💰 {service.price.toLocaleString()} VND
             </p>
-            <p className="mt-2 text-primary font-bold">{service.price.toLocaleString()} VND</p>
-            <p className="text-sm text-gray-500">{service.category}</p>
+            <div className="space-y-1">
+              <Link
+                to={`/feedbacks/${service.serviceId}`}
+                className="block text-indigo-600 hover:underline"
+              >
+                🔍 Xem đánh giá
+              </Link>
 
-            <Link
-              to={`/feedbacks/${service.serviceId}`}
-              className="inline-block mt-2 text-indigo-600 hover:underline"
-            >
-              Xem đánh giá
-            </Link>
-            <br></br>
-            {isAuthenticated() ? (
-              feedbacks[service.serviceId] ? (
-                <Link
-                  to={`/edit-feedback/${feedbacks[service.serviceId]}`}
-                  className="inline-block mt-3 text-green-600 hover:underline"
-                >
-                  Chỉnh sửa đánh giá
-                </Link>
+              {isAuthenticated() ? (
+                feedbacks[service.serviceId] ? (
+                  <Link
+                    to={`/edit-feedback/${feedbacks[service.serviceId]}`}
+                    className="block text-green-600 hover:underline"
+                  >
+                    ✏️ Chỉnh sửa đánh giá
+                  </Link>
+                ) : (
+                  <Link
+                    to={`/create-feedback/${service.serviceId}`}
+                    className="block text-blue-600 hover:underline"
+                  >
+                    ✍️ Gửi đánh giá
+                  </Link>
+                )
               ) : (
-                <Link
-                  to={`/create-feedback/${service.serviceId}`}
-                  className="inline-block mt-3 text-blue-600 hover:underline"
-                >
-                  Gửi đánh giá
-                </Link>
-              )
-            ) : (
-              <p className="text-sm text-red-500 mt-3">* Đăng nhập để gửi đánh giá</p>
-            )}
-          </div>
+                <p className="text-sm text-red-500 mt-2">* Đăng nhập để gửi đánh giá</p>
+              )}
+            </div>
+          </motion.div>
         ))}
       </div>
     </div>
