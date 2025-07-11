@@ -7,7 +7,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import LandingPage from './components/LandingPage'
 import Blog from './components/Blog'
-import BlogPost from './components/BlogPost'
+import BlogRoute from './components/BlogRoute'
 import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
@@ -50,7 +50,7 @@ function App() {
           
           <Route path="/blog/:id" element={
             <Layout>
-              <BlogPost />
+              <BlogRoute />
             </Layout>
           } />
 
