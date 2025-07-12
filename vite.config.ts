@@ -12,6 +12,6 @@ export default defineConfig({
         secure: false
       }
     },
-    open: 'msedge' // This will open Edge instead of Chrome
+     open: 'msedge'
   }
 })
