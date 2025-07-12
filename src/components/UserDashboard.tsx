@@ -7,10 +7,12 @@ import {
   ClockIcon,
   CheckCircleIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  VideoCameraIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import { getMyTestResults, getMyBookings, type TestResult, type TestBooking } from '../services/testResultsService'
+import AppointmentBooking from './AppointmentBooking'
 
 const UserDashboard: React.FC = () => {
   const { user } = useAuth()
@@ -208,6 +210,13 @@ const UserDashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={() => setActiveView('appointment-booking')}
+          className="flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-secondary font-bold hover:from-blue-600 hover:to-blue-700 transition-all"
+        >
+          <VideoCameraIcon className="h-6 w-6 mr-3" />
+          Đặt Cuộc Hẹn Tư Vấn Online
+        </button>
         <button
           onClick={() => window.location.href = '/book-service'}
           className="flex items-center justify-center bg-primary text-text-light px-8 py-4 rounded-2xl font-secondary font-bold hover:bg-primary-600 transition-colors"
@@ -1006,6 +1015,8 @@ const UserDashboard: React.FC = () => {
         return renderMyBookingsView()
       case 'menstrual-cycle':
         return renderMenstrualCycleView()
+      case 'appointment-booking':
+        return <AppointmentBooking onBack={() => setActiveView('dashboard')} />
       case 'account':
         return renderAccountView()
       default:

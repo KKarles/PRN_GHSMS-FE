@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { 
   HomeIcon, 
   ChartBarIcon, 
-  AcademicCapIcon,
+  UserGroupIcon,
   UserCircleIcon,
   ArrowLeftOnRectangleIcon 
 } from '@heroicons/react/24/outline'
@@ -17,7 +17,7 @@ const ManagerNavigation: React.FC = () => {
   const navItems = [
     { path: '/manager/dashboard', label: 'Tổng quan', icon: HomeIcon },
     { path: '/manager/reports', label: 'Báo cáo', icon: ChartBarIcon },
-    { path: '/manager/qualifications', label: 'Quản lý Chứng chỉ', icon: AcademicCapIcon },
+    { path: '/manager/employees', label: 'Quản lý Nhân viên', icon: UserGroupIcon },
     { path: '/manager/my-profile', label: 'Hồ Sơ Của Tôi', icon: UserCircleIcon }
   ]
 

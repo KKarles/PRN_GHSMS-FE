@@ -289,6 +289,20 @@ class StaffService {
       throw error
     }
   }
+
+  // Delete user by ID (Admin only)
+  async deleteUser(userId: number): Promise<void> {
+    try {
+      const response = await api.delete(`/api/User/${userId}`)
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      throw error
+    }
+  }
 }
 
 export default new StaffService()

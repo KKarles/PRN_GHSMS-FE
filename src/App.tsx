@@ -11,14 +11,15 @@ import BlogPost from './components/BlogPost'
 import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
+import ConsultantDashboard from './components/ConsultantDashboard'
 import ServiceBookingPage from './components/ServiceBookingPage'
 import StaffDashboard from './components/StaffDashboard'
 import StaffReports from './components/StaffReports'
 import CustomerLookup from './components/CustomerLookup'
 import SampleManagement from './components/SampleManagement'
 import StaffProfile from './components/StaffProfile'
-import ConsultantDashboard from './components/ConsultantDashboard'
 import ManagerDashboard from './components/ManagerDashboard'
+import ManagerEmployees from './components/ManagerEmployees'
 import AdminDashboard from './components/AdminDashboard'
 import AdminAccountManagement from './components/AdminAccountManagement'
 import AdminQualificationManagement from './components/AdminQualificationManagement'
@@ -78,10 +79,16 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRoles={['Customer']}>
               <Layout>
                 <UserDashboard />
               </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/consultant-dashboard" element={
+            <ProtectedRoute requiredRoles={['Consultant']}>
+              <ConsultantDashboard />
             </ProtectedRoute>
           } />
 
@@ -148,6 +155,12 @@ function App() {
           <Route path="/manager/reports" element={
             <ProtectedRoute>
               <ManagerReports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/employees" element={
+            <ProtectedRoute>
+              <ManagerEmployees />
             </ProtectedRoute>
           } />
 

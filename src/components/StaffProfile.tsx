@@ -26,13 +26,6 @@ interface StaffQualification {
   specialization: string
 }
 
-interface QualificationResponse {
-  hasProfile: boolean
-  qualifications?: string
-  experience?: string
-  specialization?: string
-}
-
 const StaffProfile: React.FC = () => {
   const { user } = useAuth()
   const [profile, setProfile] = useState<UserProfile>({
