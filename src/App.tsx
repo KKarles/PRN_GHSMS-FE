@@ -30,6 +30,9 @@ import ManagerProfile from './components/ManagerProfile'
 import ManagerQualificationManagement from './components/ManagerQualificationManagement'
 import ConsultantProfile from './components/ConsultantProfile'
 import ProtectedRoute from './components/ProtectedRoute'
+import QuestionsPage from './components/QuestionsPage'
+import QuestionDetailPage from './components/QuestionDetailPage'
+import AskQuestionPage from './components/AskQuestionPage'
 import ServicesPage from './components/ServicesPage'
 import FeedbackPage from './components/Feedback'
 import EditFeedbackPage from './components/EditFeedbackPage'
@@ -76,6 +79,23 @@ function App() {
             </Layout>
           } />
 
+        <Route path="/questions" element={
+          <Layout>
+            <QuestionsPage />
+          </Layout>
+        } />
+
+        <Route path="/questions/ask" element={
+          <Layout>
+            <AskQuestionPage />
+          </Layout>
+        } />
+
+        <Route path="/questions/:questionId" element={
+          <Layout>
+            <QuestionDetailPage />
+          </Layout>
+        } />
           {/* Blog Management Route - Protected */}
           <Route path="/blog-admin" element={
             <ProtectedRoute>
