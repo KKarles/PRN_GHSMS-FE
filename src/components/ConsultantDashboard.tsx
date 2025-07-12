@@ -228,8 +228,8 @@ const ConsultantDashboard: React.FC = () => {
                       </p>
                     )}
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
-                    {appointment.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.appointmentStatus)}`}>
+                    {appointment.appointmentStatus}
                   </span>
                 </div>
 
@@ -248,7 +248,7 @@ const ConsultantDashboard: React.FC = () => {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  {appointment.status === 'Pending' && (
+                  {appointment.appointmentStatus === 'Pending' && (
                     <>
                       <button
                         onClick={() => handleUpdateStatus(appointment.appointmentId, 'Confirmed')}
@@ -265,7 +265,7 @@ const ConsultantDashboard: React.FC = () => {
                     </>
                   )}
                   
-                  {appointment.status === 'Confirmed' && (
+                  {appointment.appointmentStatus === 'Confirmed' && (
                     <>
                       <button
                         onClick={() => handleUpdateStatus(appointment.appointmentId, 'Completed')}
