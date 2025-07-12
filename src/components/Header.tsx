@@ -114,7 +114,13 @@ const Header: React.FC = () => {
                     Xin chào, {user.firstName}
                   </span>
                   <button 
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => {
+                      // Navigate to appropriate dashboard based on user role
+                      const isStaff = user.roles?.some(role => 
+                        ['Staff', 'Manager', 'Admin'].includes(role)
+                      )
+                      navigate(isStaff ? '/staff/dashboard' : '/dashboard')
+                    }}
                     className="px-4 py-2 text-primary hover:bg-primary-light rounded-lg font-secondary transition-colors"
                   >
                     Dashboard
