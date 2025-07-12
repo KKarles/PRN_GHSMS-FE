@@ -66,8 +66,20 @@ const Register: React.FC = () => {
         // Update auth context
         login(response.token, response.user)
         
-        // Redirect to dashboard
-        navigate('/dashboard', { replace: true })
+        // Function to determine redirect path based on user roles
+        const getRedirectPath = (userRoles: string[]) => {
+          if (userRoles.includes('Consultant')) {
+            return '/consultant-dashboard'
+          } else if (userRoles.includes('Admin')) {
+            return '/admin-dashboard'
+          } else {
+            return '/dashboard' // Default for Customer role
+          }
+        }
+
+        // Redirect to role-based dashboard
+        const redirectPath = getRedirectPath(response.user.roles)
+        navigate(redirectPath, { replace: true })
       } else {
         setError(response.message || 'Đăng ký thất bại')
       }
