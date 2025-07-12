@@ -12,8 +12,29 @@ import BlogController from './components/BlogController' // Add this import
 import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
+import ConsultantDashboard from './components/ConsultantDashboard'
 import ServiceBookingPage from './components/ServiceBookingPage'
+import StaffDashboard from './components/StaffDashboard'
+import StaffReports from './components/StaffReports'
+import CustomerLookup from './components/CustomerLookup'
+import SampleManagement from './components/SampleManagement'
+import StaffProfile from './components/StaffProfile'
+import ManagerDashboard from './components/ManagerDashboard'
+import ManagerEmployees from './components/ManagerEmployees'
+import AdminDashboard from './components/AdminDashboard'
+import AdminAccountManagement from './components/AdminAccountManagement'
+import AdminQualificationManagement from './components/AdminQualificationManagement'
+import AdminProfile from './components/AdminProfile'
+import ManagerReports from './components/ManagerReports'
+import ManagerProfile from './components/ManagerProfile'
+import ManagerQualificationManagement from './components/ManagerQualificationManagement'
+import ConsultantProfile from './components/ConsultantProfile'
 import ProtectedRoute from './components/ProtectedRoute'
+import ServicesPage from './components/ServicesPage'
+import FeedbackPage from './components/Feedback'
+import EditFeedbackPage from './components/EditFeedbackPage'
+import FeedbackListPage from './components/FeedbackListPage'
+
 
 // Layout component for pages with header and footer
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -81,10 +102,16 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRoles={['Customer']}>
               <Layout>
                 <UserDashboard />
               </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/consultant-dashboard" element={
+            <ProtectedRoute requiredRoles={['Consultant']}>
+              <ConsultantDashboard />
             </ProtectedRoute>
           } />
 
@@ -93,6 +120,107 @@ function App() {
               <Layout>
                 <ServiceBookingPage />
               </Layout>
+            </ProtectedRoute>
+          } />
+
+          {/* Staff Routes */}
+          <Route path="/staff/dashboard" element={
+            <ProtectedRoute>
+              <StaffDashboard />
+            </ProtectedRoute>
+          } />
+
+          {/* Removed staff access to reports and customer management - not their job */}
+          {/* <Route path="/staff/reports" element={
+            <ProtectedRoute>
+              <StaffReports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/staff/customers" element={
+            <ProtectedRoute>
+              <CustomerLookup />
+            </ProtectedRoute>
+          } /> */}
+
+          <Route path="/staff/samples" element={
+            <ProtectedRoute>
+              <SampleManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/staff/my-profile" element={
+            <ProtectedRoute>
+              <StaffProfile />
+            </ProtectedRoute>
+          } />
+
+          {/* Consultant Routes */}
+          <Route path="/consultant/dashboard" element={
+            <ProtectedRoute>
+              <ConsultantDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/consultant/my-profile" element={
+            <ProtectedRoute>
+              <ConsultantProfile />
+            </ProtectedRoute>
+          } />
+
+          {/* Manager Routes */}
+          <Route path="/manager/dashboard" element={
+            <ProtectedRoute>
+              <ManagerDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/reports" element={
+            <ProtectedRoute>
+              <ManagerReports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/employees" element={
+            <ProtectedRoute>
+              <ManagerEmployees />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/qualifications" element={
+            <ProtectedRoute>
+              <ManagerQualificationManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/my-profile" element={
+            <ProtectedRoute>
+              <ManagerProfile />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/accounts" element={
+            <ProtectedRoute>
+              <AdminAccountManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/qualifications" element={
+            <ProtectedRoute>
+              <AdminQualificationManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/my-profile" element={
+            <ProtectedRoute>
+              <AdminProfile />
             </ProtectedRoute>
           } />
 
@@ -123,6 +251,30 @@ function App() {
               </div>
             </AuthLayout>
           } />
+
+          <Route path="/services" element={
+          <Layout>
+            <ServicesPage />
+          </Layout>
+        } />
+
+        <Route path="/create-feedback/:serviceId" element={
+        <Layout>
+          <FeedbackPage />
+        </Layout>
+      } />
+
+      <Route path="/edit-feedback/:feedbackId" element={
+        <Layout>
+          <EditFeedbackPage />
+        </Layout>
+      } />
+
+      <Route path="/feedbacks/:serviceId" element={
+        <Layout>
+          <FeedbackListPage />
+        </Layout>
+      } />
 
           {/* 404 Page */}
           <Route path="*" element={

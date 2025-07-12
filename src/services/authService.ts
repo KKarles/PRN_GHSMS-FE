@@ -61,11 +61,13 @@ export interface UserProfile {
 export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse> => {
   try {
     const response = await api.post('/api/auth/login', credentials)
-    
+
     if (response.data.token) {
       localStorage.setItem('ghsms_token', response.data.token)
+
+      localStorage.setItem('ghsms_user', JSON.stringify(response.data.user))
     }
-    
+
     return response.data
   } catch (error) {
     console.error('Login failed:', error)
