@@ -7,7 +7,8 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import LandingPage from './components/LandingPage'
 import Blog from './components/Blog'
-import BlogPost from './components/BlogPost'
+import BlogRoute from './components/BlogRoute'
+import BlogController from './components/BlogController' // Add this import
 import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
@@ -71,8 +72,25 @@ function App() {
           
           <Route path="/blog/:id" element={
             <Layout>
-              <BlogPost />
+              <BlogRoute />
             </Layout>
+          } />
+
+          {/* Blog Management Route - Protected */}
+          <Route path="/blog-admin" element={
+            <ProtectedRoute>
+              <Layout>
+                <BlogController userRole="admin" />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/my-blog" element={
+            <ProtectedRoute>
+              <Layout>
+                <BlogController userRole="author" />
+              </Layout>
+            </ProtectedRoute>
           } />
 
           {/* Auth Routes (no header/footer) */}

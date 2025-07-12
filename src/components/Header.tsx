@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 
 const Header: React.FC = () => {
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
   const [showPromoBanner, setShowPromoBanner] = useState(true)
+  const [showBlogDropdown, setShowBlogDropdown] = useState(false)
 
   return (
     <>
@@ -44,12 +45,57 @@ const Header: React.FC = () => {
                 >
                   Dịch vụ
                 </button>
-                <button 
-                  onClick={() => navigate('/blog')}
-                  className="text-text-dark hover:text-primary font-secondary"
-                >
-                  Blog
-                </button>
+                
+                {/* Blog Dropdown */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowBlogDropdown(!showBlogDropdown)}
+                    className="flex items-center text-text-dark hover:text-primary font-secondary"
+                  >
+                    Blog
+                    <ChevronDownIcon className="h-4 w-4 ml-1" />
+                  </button>
+                  
+                  {showBlogDropdown && (
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px]">
+                      <button 
+                        onClick={() => {
+                          navigate('/blog')
+                          setShowBlogDropdown(false)
+                        }}
+                        className="block w-full text-left px-4 py-2 text-text-dark hover:bg-gray-50 font-secondary"
+                      >
+                        Xem Blog
+                      </button>
+                      
+                      {isAuthenticated && (
+                        <>
+                          <button 
+                            onClick={() => {
+                              navigate('/my-blog')
+                              setShowBlogDropdown(false)
+                            }}
+                            className="block w-full text-left px-4 py-2 text-text-dark hover:bg-gray-50 font-secondary"
+                          >
+                            Quản lý Blog của tôi
+                          </button>
+                          
+                          {/* Show admin option for testing - you can add role check here later */}
+                          <button 
+                            onClick={() => {
+                              navigate('/blog-admin')
+                              setShowBlogDropdown(false)
+                            }}
+                            className="block w-full text-left px-4 py-2 text-text-dark hover:bg-gray-50 font-secondary"
+                          >
+                            Quản lý Blog (Chung)
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
                 <button 
                   onClick={() => navigate('/about')}
                   className="text-text-dark hover:text-primary font-secondary"
@@ -107,6 +153,14 @@ const Header: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Click outside to close dropdown */}
+      {showBlogDropdown && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowBlogDropdown(false)}
+        />
+      )}
     </>
   )
 }
