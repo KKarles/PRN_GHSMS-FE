@@ -46,18 +46,31 @@ const Login: React.FC = () => {
     setIsLoading(true)
     setError(null)
 
+    
     try {
       const response = await loginUser(formData)
       
       if (response.success) {
         // Update auth context
         login(response.token, response.user)
+        // Role-based redirect - each role gets their own dashboard
+        const userRoles = response.user.roles || []
+        let defaultRedirect = '/dashboard' // Default for customers
         
-        // Determine redirect path based on roles
-        const redirectPath = from || getRedirectPath(response.user.roles)
+        if (userRoles.includes('Admin')) {
+          defaultRedirect = '/admin/dashboard'
+        } else if (userRoles.includes('Manager')) {
+          defaultRedirect = '/manager/dashboard'
+        } else if (userRoles.includes('Consultant')) {
+          defaultRedirect = '/consultant/dashboard'
+        } else if (userRoles.includes('Staff')) {
+          defaultRedirect = '/staff/dashboard'
+        }
         
-        // Redirect to intended page or role-based dashboard
-        navigate(redirectPath, { replace: true })
+        // Use intended page or role-based default
+        const redirectTo = location.state?.from?.pathname || defaultRedirect
+        navigate(redirectTo, { replace: true })
+          
       } else {
         setError(response.message || 'Đăng nhập thất bại')
       }

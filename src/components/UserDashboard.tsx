@@ -390,7 +390,7 @@ const UserDashboard: React.FC = () => {
                     </div>
                     
                     {/* Download Button */}
-                    {result.downloadUrl && (
+                    {(result as any).downloadUrl && (
                       <div className="mt-4 pt-4 border-t border-gray-100">
                         <button className="bg-primary text-text-light px-4 py-2 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors">
                           Tải xuống kết quả PDF
