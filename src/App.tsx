@@ -11,6 +11,7 @@ import BlogPost from './components/BlogPost'
 import Login from './components/Login'
 import Register from './components/Register'
 import UserDashboard from './components/UserDashboard'
+import ConsultantDashboard from './components/ConsultantDashboard'
 import ServiceBookingPage from './components/ServiceBookingPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -63,10 +64,16 @@ function App() {
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRoles={['Customer']}>
               <Layout>
                 <UserDashboard />
               </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/consultant-dashboard" element={
+            <ProtectedRoute requiredRoles={['Consultant']}>
+              <ConsultantDashboard />
             </ProtectedRoute>
           } />
 

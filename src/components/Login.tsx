@@ -17,8 +17,19 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Function to determine redirect path based on user roles
+  const getRedirectPath = (userRoles: string[]) => {
+    if (userRoles.includes('Consultant')) {
+      return '/consultant-dashboard'
+    } else if (userRoles.includes('Admin')) {
+      return '/admin-dashboard'
+    } else {
+      return '/dashboard' // Default for Customer role
+    }
+  }
+
   // Get the page user was trying to access before login
-  const from = location.state?.from?.pathname || '/dashboard'
+  const from = location.state?.from?.pathname
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -42,8 +53,11 @@ const Login: React.FC = () => {
         // Update auth context
         login(response.token, response.user)
         
-        // Redirect to intended page or dashboard
-        navigate(from, { replace: true })
+        // Determine redirect path based on roles
+        const redirectPath = from || getRedirectPath(response.user.roles)
+        
+        // Redirect to intended page or role-based dashboard
+        navigate(redirectPath, { replace: true })
       } else {
         setError(response.message || 'Đăng nhập thất bại')
       }
