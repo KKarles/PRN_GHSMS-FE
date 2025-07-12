@@ -11,6 +11,7 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
+import ConsultantNavigation from './ConsultantNavigation'
 import { 
   getConsultantAppointments, 
   updateAppointmentStatus, 
@@ -334,62 +335,48 @@ const ConsultantDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-light">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg min-h-screen">
-          <div className="p-6 border-b border-gray-200">
-            <h1 className="text-xl font-primary font-bold text-primary">
-              GHSMS Consultant
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Dr. {user?.firstName} {user?.lastName}
-            </p>
-          </div>
-          
-          <nav className="mt-6">
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  className={`w-full flex items-center px-6 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    activeView === item.id ? 'bg-primary-50 text-primary border-r-2 border-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 mr-3" />
-                  {item.text}
-                </button>
-              )
-            })}
-          </nav>
-
-          <div className="absolute bottom-0 w-64 p-6 border-t border-gray-200">
-            <button
-              onClick={logout}
-              className="w-full bg-red-500 text-white py-2 px-4 rounded-lg font-secondary font-bold hover:bg-red-600 transition-colors"
+      <ConsultantNavigation />
+      
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+            <button 
+              onClick={() => setError(null)}
+              className="float-right text-red-500 hover:text-red-700"
             >
-              Đăng xuất
+              ×
             </button>
           </div>
+        )}
+        
+        {/* Sub Navigation for Dashboard Views */}
+        <div className="bg-white rounded-lg shadow-sm mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveView(item.id)}
+                    className={`flex items-center px-3 py-4 text-sm font-secondary font-medium transition-colors ${
+                      activeView === item.id
+                        ? 'text-primary border-b-2 border-primary'
+                        : 'text-gray-600 hover:text-primary'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 mr-2" />
+                    {item.text}
+                  </button>
+                )
+              })}
+            </nav>
+          </div>
         </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-              {error}
-              <button 
-                onClick={() => setError(null)}
-                className="float-right text-red-500 hover:text-red-700"
-              >
-                ×
-              </button>
-            </div>
-          )}
-          
-          {renderContent()}
-        </div>
+        
+        {renderContent()}
       </div>
     </div>
   )

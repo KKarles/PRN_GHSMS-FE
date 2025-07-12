@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ChartBarIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import ManagerNavigation from './ManagerNavigation'
+import EmployeeManagement from './EmployeeManagement'
 
 const ManagerDashboard: React.FC = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [showEmployeeManagement, setShowEmployeeManagement] = useState(false)
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -43,16 +46,21 @@ const ManagerDashboard: React.FC = () => {
                 <span className="font-secondary font-semibold text-lg">Báo cáo</span>
               </button>
               <button 
-                onClick={() => navigate('/manager/qualifications')}
+                onClick={() => setShowEmployeeManagement(true)}
                 className="flex items-center justify-center p-6 border-2 border-primary text-primary rounded-xl hover:bg-primary-light transition-colors"
               >
-                <AcademicCapIcon className="h-8 w-8 mr-4" />
-                <span className="font-secondary font-semibold text-lg">Quản lý Chứng chỉ</span>
+                <UserGroupIcon className="h-8 w-8 mr-4" />
+                <span className="font-secondary font-semibold text-lg">Quản lý Nhân viên</span>
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Employee Management Modal */}
+      {showEmployeeManagement && (
+        <EmployeeManagement onClose={() => setShowEmployeeManagement(false)} />
+      )}
     </div>
   )
 }

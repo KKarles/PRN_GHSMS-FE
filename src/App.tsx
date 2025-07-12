@@ -18,8 +18,8 @@ import StaffReports from './components/StaffReports'
 import CustomerLookup from './components/CustomerLookup'
 import SampleManagement from './components/SampleManagement'
 import StaffProfile from './components/StaffProfile'
-import ConsultantDashboard from './components/ConsultantDashboard'
 import ManagerDashboard from './components/ManagerDashboard'
+import ManagerEmployees from './components/ManagerEmployees'
 import AdminDashboard from './components/AdminDashboard'
 import AdminAccountManagement from './components/AdminAccountManagement'
 import AdminQualificationManagement from './components/AdminQualificationManagement'
@@ -155,6 +155,12 @@ function App() {
           <Route path="/manager/reports" element={
             <ProtectedRoute>
               <ManagerReports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager/employees" element={
+            <ProtectedRoute>
+              <ManagerEmployees />
             </ProtectedRoute>
           } />
 
