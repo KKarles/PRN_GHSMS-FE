@@ -6,6 +6,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import LandingPage from './components/LandingPage'
+import Services from './components/Services'
+import About from './components/About'
 import Blog from './components/Blog'
 import BlogRoute from './components/BlogRoute'
 import BlogController from './components/BlogController' // Add this import
@@ -56,6 +58,18 @@ function App() {
           <Route path="/" element={
             <Layout>
               <LandingPage />
+            </Layout>
+          } />
+          
+          <Route path="/services" element={
+            <Layout>
+              <Services />
+            </Layout>
+          } />
+          
+          <Route path="/about" element={
+            <Layout>
+              <About />
             </Layout>
           } />
           
