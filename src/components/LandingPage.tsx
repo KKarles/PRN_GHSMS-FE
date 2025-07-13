@@ -1,7 +1,16 @@
 import React from 'react'
 import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import { useNavigate } from 'react-router-dom'
+// Method 1: Import all images from index file
+import { images } from '../assets'
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate()
+
+  const handleGetStarted = () => {
+    navigate('/dashboard')
+  }
+
   return (
     <div className="bg-background-light">
       {/* Hero Section */}
@@ -20,8 +29,20 @@ const LandingPage: React.FC = () => {
       {/* Featured Image Section */}
       <section className="px-4 mb-16">
         <div className="container mx-auto">
-          <div className="bg-primary-light rounded-2xl h-96 flex items-center justify-center">
-            <p className="text-primary font-secondary text-lg">
+          <div className="bg-primary-light rounded-2xl h-96 flex items-center justify-center overflow-hidden">
+            <img 
+              src={images.hero} 
+              alt="Clinic Environment" 
+              className="w-full h-full object-cover rounded-2xl"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                if (nextElement) {
+                  nextElement.style.display = 'flex';
+                }
+              }}
+            />
+            <p className="text-primary font-secondary text-lg hidden">
               [Hero Image - Clinic Environment]
             </p>
           </div>
@@ -34,8 +55,20 @@ const LandingPage: React.FC = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {/* STI Tests Card */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle hover:shadow-md transition-shadow">
-              <div className="bg-accent-50 rounded-xl h-48 mb-6 flex items-center justify-center">
-                <p className="text-accent font-secondary">[STI Tests Image]</p>
+              <div className="bg-accent-50 rounded-xl h-48 mb-6 flex items-center justify-center overflow-hidden">
+                <img 
+                  src={images.stiTests} 
+                  alt="STI Tests" 
+                  className="w-full h-full object-cover rounded-xl"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                />
+                <p className="text-accent font-secondary hidden">[STI Tests Image]</p>
               </div>
               <h3 className="text-xl font-primary font-semibold text-text-dark mb-3">
                 Xét nghiệm STIs
@@ -51,8 +84,20 @@ const LandingPage: React.FC = () => {
 
             {/* Consultation Card */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle hover:shadow-md transition-shadow">
-              <div className="bg-accent-50 rounded-xl h-48 mb-6 flex items-center justify-center">
-                <p className="text-accent font-secondary">[Consultation Image]</p>
+              <div className="bg-accent-50 rounded-xl h-48 mb-6 flex items-center justify-center overflow-hidden">
+                <img 
+                  src={images.consultation} 
+                  alt="Consultation" 
+                  className="w-full h-full object-cover rounded-xl"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'flex';
+                    }
+                  }}
+                />
+                <p className="text-accent font-secondary hidden">[Consultation Image]</p>
               </div>
               <h3 className="text-xl font-primary font-semibold text-text-dark mb-3">
                 Tư vấn 1-1
@@ -68,8 +113,12 @@ const LandingPage: React.FC = () => {
 
             {/* Cycle Tracker Card */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle hover:shadow-md transition-shadow">
-              <div className="bg-accent-50 rounded-xl h-48 mb-6 flex items-center justify-center">
-                <p className="text-accent font-secondary">[Cycle Tracker Image]</p>
+              <div className="bg-accent-50 rounded-xl h-48 mb-6 flex items-center justify-center overflow-hidden">
+                <img 
+                  src={images.cycle} 
+                  alt="Cycle Tracker" 
+                  className="w-full h-full object-cover rounded-xl"
+                />
               </div>
               <h3 className="text-xl font-primary font-semibold text-text-dark mb-3">
                 Theo dõi chu kỳ
@@ -91,8 +140,20 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Image */}
-            <div className="bg-primary-light rounded-2xl h-96 flex items-center justify-center">
-              <p className="text-primary font-secondary text-lg">
+            <div className="bg-primary-light rounded-2xl h-96 flex items-center justify-center overflow-hidden">
+              <img 
+                src={images.howItWorks} 
+                alt="How It Works Process" 
+                className="w-full h-full object-cover rounded-2xl"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (nextElement) {
+                    nextElement.style.display = 'flex';
+                  }
+                }}
+              />
+              <p className="text-primary font-secondary text-lg hidden">
                 [How It Works Process Image]
               </p>
             </div>
@@ -147,7 +208,10 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
 
-              <button className="bg-primary text-text-light px-8 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors">
+              <button 
+                onClick={handleGetStarted}
+                className="bg-primary text-text-light px-8 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
+              >
                 Bắt đầu ngay
               </button>
             </div>

@@ -75,8 +75,9 @@ export const createAppointment = async (appointmentData: CreateAppointmentReques
 
 export const getUserAppointments = async (): Promise<Appointment[]> => {
   try {
-    const response = await api.get('/api/appointment/user')
-    if (response.data.success) {
+    const response = await api.get('/api/appointment/my-appointments')
+    console.log(response)
+    if (response.data.isSuccess) {
       return response.data.data
     } else {
       throw new Error(response.data.message || 'Failed to fetch appointments')
