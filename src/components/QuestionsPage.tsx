@@ -4,10 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
 interface Question {
-  id: number;
+  questionId: number;
   title: string;
-  content: string;
-  createdByName: string | null;
+  questionText: string;
+  customerName: string | null;
   isAnonymous: boolean;
   createdAt: string;
 }
@@ -37,22 +37,28 @@ const QuestionsPage: React.FC = () => {
         )}
       </div>
       <div className="space-y-4">
-        {questions.map(q => (
-          <div
-            key={q.id}
-            className="p-4 border rounded shadow hover:bg-gray-50 cursor-pointer"
-            onClick={() => navigate(`/questions/${q.id}`)}
-          >
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">{q.title}</h2>
-              <span className="text-sm text-gray-500">
-                {q.isAnonymous ? 'Anonymous' : q.createdByName}
-              </span>
+        {questions.length > 0 ? (
+          questions.map(q => (
+            <div
+              key={q.questionId}
+              className="p-4 border rounded shadow hover:bg-gray-50 cursor-pointer"
+              onClick={() => navigate(`/questions/${q.questionId}`)}
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">{q.title}</h2>
+                <span className="text-sm text-gray-500">
+                  {q.isAnonymous ? 'Anonymous' : q.customerName}
+                </span>
+              </div>
+              <p className="text-gray-700 mt-2 line-clamp-2">{q.questionText}</p>
+              <div className="text-xs text-gray-400 mt-1">{new Date(q.createdAt).toLocaleString()}</div>
             </div>
-            <p className="text-gray-700 mt-2 line-clamp-2">{q.content}</p>
-            <div className="text-xs text-gray-400 mt-1">{new Date(q.createdAt).toLocaleString()}</div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            Chưa có câu hỏi nào
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
