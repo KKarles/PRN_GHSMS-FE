@@ -61,7 +61,10 @@ const QuestionDetailPage: React.FC = () => {
     setError('');
     setSuccessMsg('');
     try {
-      const res = await postAnswer({ questionId: Number(questionId), content: answerContent });
+      const res = await postAnswer({
+        QuestionId: Number(questionId),
+        AnswerText: answerContent
+      });
       if (!res.data.success) throw new Error(res.data.message);
       setSuccessMsg('Đã gửi câu trả lời!');
       setAnswerContent('');
