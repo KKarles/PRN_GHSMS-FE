@@ -198,11 +198,6 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/consultant-dashboard" element={
-            <ProtectedRoute requiredRoles={['Consultant']}>
-              <ConsultantDashboard />
-            </ProtectedRoute>
-          } />
 
           <Route path="/book-service" element={
             <ProtectedRoute>
@@ -232,6 +227,12 @@ function App() {
           } />
 
           {/* Consultant Routes */}
+          <Route path="/consultant-dashboard" element={
+            <ProtectedRoute requiredRoles={['Consultant']}>
+              <ConsultantDashboard />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/consultant/dashboard" element={
             <ProtectedRoute requiredRoles={['Consultant']}>
               <ConsultantDashboard />

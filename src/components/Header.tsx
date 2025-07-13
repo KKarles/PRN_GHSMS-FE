@@ -182,7 +182,17 @@ const Header: React.FC = () => {
                       const isStaff = user.roles?.some(role => 
                         ['Staff', 'Manager', 'Admin'].includes(role)
                       )
-                      handleNavigation(isStaff ? '/staff/dashboard' : '/dashboard')
+                      const isConsultant = user.roles?.some(role => 
+                        role === 'Consultant'
+                      )
+                      
+                      if (isStaff) {
+                        handleNavigation('/staff/dashboard')
+                      } else if (isConsultant) {
+                        handleNavigation('/consultant/dashboard')
+                      } else {
+                        handleNavigation('/dashboard')
+                      }
                     }}
                     className="px-4 py-2 text-primary hover:bg-primary-light rounded-lg font-secondary transition-colors"
                   >

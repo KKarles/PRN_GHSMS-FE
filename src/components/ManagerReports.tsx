@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ChartBarIcon,
   DocumentArrowDownIcon,
@@ -7,6 +7,7 @@ import {
   ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline'
 import ManagerNavigation from './ManagerNavigation'
+import dashboardService from '../services/dashboardService'
 
 interface ReportData {
   totalRevenue: number
@@ -24,34 +25,86 @@ interface ServicePopularity {
 const ManagerReports: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('thisMonth')
   const [reportData, setReportData] = useState<ReportData>({
-    totalRevenue: 45750000,
-    totalBookings: 127,
-    totalCustomers: 89,
-    growthRate: 12.5
+    totalRevenue: 0,
+    totalBookings: 0,
+    totalCustomers: 0,
+    growthRate: 0
   })
+  const [servicePopularity, setServicePopularity] = useState<ServicePopularity[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const [servicePopularity, setServicePopularity] = useState<ServicePopularity[]>([
-    {
-      serviceName: 'Gói Xét Nghiệm STIs Cơ Bản (4 Bệnh)',
-      bookingCount: 45,
-      revenue: 38250000
-    },
-    {
-      serviceName: 'Xét nghiệm HIV Combo Ab/Ag',
-      bookingCount: 32,
-      revenue: 8000000
-    },
-    {
-      serviceName: 'Gói Xét Nghiệm STIs Nâng Cao (9 Bệnh)',
-      bookingCount: 28,
-      revenue: 50400000
-    },
-    {
-      serviceName: 'Xét nghiệm Viêm Gan C (Anti-HCV)',
-      bookingCount: 22,
-      revenue: 3960000
+  // Load dashboard data from API
+  useEffect(() => {
+    loadDashboardData()
+  }, [selectedPeriod])
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Get comprehensive dashboard stats
+      const dashboardStats = await dashboardService.getDashboardStats()
+      
+      // Update report data with API response
+      setReportData({
+        totalRevenue: dashboardStats.revenue.totalRevenue,
+        totalBookings: dashboardStats.bookings.totalBookings,
+        totalCustomers: dashboardStats.users.totalUsers,
+        growthRate: dashboardStats.revenue.growthRate
+      })
+
+      // Get popular services
+      const popularServices = await dashboardService.getPopularServices(10)
+      
+      // Transform API data to match component interface
+      const transformedServices: ServicePopularity[] = popularServices.map(service => ({
+        serviceName: service.serviceName,
+        bookingCount: service.bookingCount,
+        revenue: service.revenue
+      }))
+      
+      setServicePopularity(transformedServices)
+
+    } catch (error: any) {
+      console.error('Failed to load dashboard data:', error)
+      setError(error.message || 'Failed to load dashboard data')
+      
+      // Fallback to mock data if API fails
+      setReportData({
+        totalRevenue: 45750000,
+        totalBookings: 127,
+        totalCustomers: 89,
+        growthRate: 12.5
+      })
+      
+      setServicePopularity([
+        {
+          serviceName: 'Gói Xét Nghiệm STIs Cơ Bản (4 Bệnh)',
+          bookingCount: 45,
+          revenue: 38250000
+        },
+        {
+          serviceName: 'Xét nghiệm HIV Combo Ab/Ag',
+          bookingCount: 32,
+          revenue: 8000000
+        },
+        {
+          serviceName: 'Gói Xét Nghiệm STIs Nâng Cao (9 Bệnh)',
+          bookingCount: 28,
+          revenue: 50400000
+        },
+        {
+          serviceName: 'Xét nghiệm Viêm Gan C (Anti-HCV)',
+          bookingCount: 22,
+          revenue: 3960000
+        }
+      ])
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -94,6 +147,23 @@ const ManagerReports: React.FC = () => {
             </p>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+              <div className="flex items-center">
+                <div className="text-red-600 text-sm">
+                  <strong>Lỗi:</strong> {error}
+                </div>
+                <button
+                  onClick={loadDashboardData}
+                  className="ml-auto px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+                >
+                  Thử lại
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Period Selection */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle mb-6">
             <div className="flex items-center justify-between">
@@ -103,7 +173,8 @@ const ManagerReports: React.FC = () => {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                disabled={loading}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
               >
                 <option value="thisWeek">Tuần này</option>
                 <option value="thisMonth">Tháng này</option>
@@ -115,6 +186,14 @@ const ManagerReports: React.FC = () => {
 
           {/* Summary Cards */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
+            {loading && (
+              <div className="col-span-4 text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+              </div>
+            )}
+            {!loading && (
+              <>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
               <div className="flex items-center justify-between">
                 <div>
@@ -162,6 +241,8 @@ const ManagerReports: React.FC = () => {
                 <ArrowTrendingUpIcon className="h-12 w-12 text-green-500" />
               </div>
             </div>
+            </>
+            )}
           </div>
 
           {/* Service Popularity Report */}
@@ -198,7 +279,21 @@ const ManagerReports: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {servicePopularity.map((service, index) => {
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center">
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <p className="mt-2 text-gray-600">Đang tải dữ liệu dịch vụ...</p>
+                      </td>
+                    </tr>
+                  ) : servicePopularity.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                        Không có dữ liệu dịch vụ
+                      </td>
+                    </tr>
+                  ) : (
+                    servicePopularity.map((service, index) => {
                     const percentage = ((service.bookingCount / reportData.totalBookings) * 100).toFixed(1)
                     return (
                       <tr key={index} className="hover:bg-gray-50">
@@ -226,7 +321,8 @@ const ManagerReports: React.FC = () => {
                         </td>
                       </tr>
                     )
-                  })}
+                  })
+                  )}
                 </tbody>
               </table>
             </div>

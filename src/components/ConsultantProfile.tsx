@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   UserCircleIcon,
   AcademicCapIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  Cog6ToothIcon,
+  ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline'
-import ConsultantNavigation from './ConsultantNavigation'
 import { useAuth } from '../contexts/AuthContext'
 import api from '../services/api'
 
@@ -31,7 +35,8 @@ interface QualificationResponse {
 }
 
 const ConsultantProfile: React.FC = () => {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<UserProfile>({
     firstName: '',
     lastName: '',
@@ -57,6 +62,26 @@ const ConsultantProfile: React.FC = () => {
   const canManageOwnQualifications = user?.roles?.some(role => 
     ['Consultant', 'Staff'].includes(role)
   ) || false
+
+  const menuItems = [
+    { id: 'dashboard', text: 'Tổng quan', icon: ChartBarIcon, path: '/consultant/dashboard' },
+    { id: 'appointments', text: 'Cuộc hẹn', icon: CalendarIcon, path: '/consultant/dashboard' },
+    { id: 'settings', text: 'Cài đặt', icon: Cog6ToothIcon, path: '/consultant/dashboard' },
+  ]
+
+  const handleMenuClick = (path: string, id: string) => {
+    if (id === 'dashboard') {
+      navigate(path)
+    } else {
+      // Navigate to consultant dashboard with specific view
+      navigate(path, { state: { activeView: id } })
+    }
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   useEffect(() => {
     fetchProfile()
@@ -196,7 +221,49 @@ const ConsultantProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-light">
-      <ConsultantNavigation />
+      {/* Main Navigation */}
+      <div className="bg-white shadow-sm mb-6">
+        <div className="container mx-auto px-4">
+          <div className="border-b border-gray-200">
+            <nav className="flex items-center justify-between px-2">
+              {/* Left side - Main menu items */}
+              <div className="flex space-x-8">
+                {menuItems.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMenuClick(item.path, item.id)}
+                      className="flex items-center px-3 py-4 text-sm font-secondary font-medium text-gray-600 hover:text-primary transition-colors"
+                    >
+                      <Icon className="h-5 w-5 mr-2" />
+                      {item.text}
+                    </button>
+                  )
+                })}
+              </div>
+              
+              {/* Right side - Profile and Logout */}
+              <div className="flex items-center space-x-4">
+                <button
+                  className="flex items-center px-3 py-2 text-sm font-secondary font-medium text-primary border-b-2 border-primary"
+                >
+                  <UserCircleIcon className="h-5 w-5 mr-2" />
+                  Hồ sơ của tôi
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-3 py-2 text-sm font-secondary font-medium text-gray-600 hover:text-red-600 transition-colors"
+                >
+                  <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
+                  Đăng xuất
+                </button>
+              </div>
+            </nav>
+          </div>
+        </div>
+      </div>
+      
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
