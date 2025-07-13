@@ -32,6 +32,229 @@ interface BlogFormData {
   publishNow: boolean
 }
 
+// Rich Text Editor Component
+interface RichTextEditorProps {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+}
+
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder }) => {
+  const editorRef = React.useRef<HTMLDivElement>(null)
+
+  // Handle paste events to preserve formatting
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    
+    // Get clipboard data
+    const clipboardData = e.clipboardData
+    const htmlData = clipboardData.getData('text/html')
+    const textData = clipboardData.getData('text/plain')
+    
+    // Use HTML if available, otherwise plain text
+    const content = htmlData || textData
+    
+    if (content) {
+      // Insert content at cursor position
+      const selection = window.getSelection()
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        range.deleteContents()
+        
+        // Create a temporary div to parse HTML
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = content
+        
+        // Insert each node
+        const fragment = document.createDocumentFragment()
+        while (tempDiv.firstChild) {
+          fragment.appendChild(tempDiv.firstChild)
+        }
+        range.insertNode(fragment)
+        
+        // Update the state
+        if (editorRef.current) {
+          onChange(editorRef.current.innerHTML)
+        }
+      }
+    }
+  }
+
+  // Handle input changes
+  const handleInput = () => {
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML)
+    }
+  }
+
+  // Update editor content when value changes
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value
+    }
+  }, [value])
+
+  return (
+    <div className="border border-gray-300 rounded-md">
+      {/* Toolbar */}
+      <div className="border-b border-gray-200 p-2 flex flex-wrap gap-1 bg-gray-50">
+        <button
+          type="button"
+          onClick={() => document.execCommand('bold')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Bold"
+        >
+          <strong>B</strong>
+        </button>
+        <button
+          type="button"
+          onClick={() => document.execCommand('italic')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Italic"
+        >
+          <em>I</em>
+        </button>
+        <button
+          type="button"
+          onClick={() => document.execCommand('underline')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Underline"
+        >
+          <u>U</u>
+        </button>
+        <div className="w-px bg-gray-300 mx-1"></div>
+        <button
+          type="button"
+          onClick={() => document.execCommand('justifyLeft')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Align Left"
+        >
+          ≡
+        </button>
+        <button
+          type="button"
+          onClick={() => document.execCommand('justifyCenter')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Align Center"
+        >
+          ≣
+        </button>
+        <button
+          type="button"
+          onClick={() => document.execCommand('justifyRight')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Align Right"
+        >
+          ≡
+        </button>
+        <div className="w-px bg-gray-300 mx-1"></div>
+        <button
+          type="button"
+          onClick={() => document.execCommand('insertUnorderedList')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Bullet List"
+        >
+          • List
+        </button>
+        <button
+          type="button"
+          onClick={() => document.execCommand('insertOrderedList')}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Numbered List"
+        >
+          1. List
+        </button>
+        <div className="w-px bg-gray-300 mx-1"></div>
+        <button
+          type="button"
+          onClick={() => {
+            const url = prompt('Enter image URL:')
+            if (url) {
+              document.execCommand('insertImage', false, url)
+            }
+          }}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Insert Image"
+        >
+          🖼️
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const url = prompt('Enter link URL:')
+            if (url) {
+              document.execCommand('createLink', false, url)
+            }
+          }}
+          className="px-2 py-1 text-sm border rounded hover:bg-gray-200"
+          title="Insert Link"
+        >
+          🔗
+        </button>
+      </div>
+      
+      {/* Editor */}
+      <div
+        ref={editorRef}
+        contentEditable
+        onPaste={handlePaste}
+        onInput={handleInput}
+        className="rich-text-editor p-3 min-h-[200px] max-h-[400px] overflow-y-auto focus:outline-none"
+        style={{ 
+          wordBreak: 'break-word',
+          lineHeight: '1.6'
+        }}
+        data-placeholder={placeholder}
+        suppressContentEditableWarning={true}
+      />
+      
+      <style>{`
+        .rich-text-editor [data-placeholder]:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af;
+          pointer-events: none;
+        }
+        
+        .rich-text-editor img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 4px;
+          margin: 8px 0;
+        }
+        
+        .rich-text-editor ul, .rich-text-editor ol {
+          padding-left: 20px;
+          margin: 8px 0;
+        }
+        
+        .rich-text-editor blockquote {
+          border-left: 4px solid #3b82f6;
+          padding-left: 12px;
+          margin: 12px 0;
+          background: #f8fafc;
+          padding: 8px 12px;
+          border-radius: 4px;
+        }
+        
+        .rich-text-editor a {
+          color: #3b82f6;
+          text-decoration: underline;
+        }
+        
+        .rich-text-editor p {
+          margin: 8px 0;
+        }
+        
+        .rich-text-editor h1, .rich-text-editor h2, .rich-text-editor h3,
+        .rich-text-editor h4, .rich-text-editor h5, .rich-text-editor h6 {
+          margin: 12px 0 8px 0;
+          font-weight: 600;
+        }
+      `}</style>
+    </div>
+  )
+}
+
 const BlogController: React.FC<BlogControllerProps> = ({ 
   userRole = 'staff', 
   className = '' 
@@ -164,13 +387,19 @@ const BlogController: React.FC<BlogControllerProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!formData.title.trim() || !formData.content.trim()) {
+      setError('Vui lòng điền đầy đủ tiêu đề và nội dung')
+      return
+    }
+    
     try {
       setLoading(true)
+      setError(null)
       
       if (editingPost) {
         // Update existing post
         const updateDto: BlogPostUpdateDto = {
-          title: formData.title,
+          title: formData.title.trim(),
           content: formData.content,
           isPublished: formData.publishNow
         }
@@ -188,7 +417,7 @@ const BlogController: React.FC<BlogControllerProps> = ({
       } else {
         // Create new post
         const createDto: BlogPostCreateDto = {
-          title: formData.title,
+          title: formData.title.trim(),
           content: formData.content,
           publishNow: formData.publishNow
         }
@@ -557,7 +786,7 @@ const BlogController: React.FC<BlogControllerProps> = ({
       {/* Create/Edit Modal */}
       {(showCreateModal || showEditModal) && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white my-8">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 {editingPost ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}
@@ -565,7 +794,7 @@ const BlogController: React.FC<BlogControllerProps> = ({
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tiêu đề
+                    Tiêu đề *
                   </label>
                   <input
                     type="text"
@@ -573,19 +802,21 @@ const BlogController: React.FC<BlogControllerProps> = ({
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
+                    placeholder="Nhập tiêu đề bài viết..."
                   />
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nội dung
+                    Nội dung *
                   </label>
-                  <textarea
+                  <RichTextEditor
                     value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={10}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
+                    onChange={(content) => setFormData({ ...formData, content })}
+                    placeholder="Nhập nội dung bài viết... Bạn có thể dán nội dung từ trang web khác với định dạng và hình ảnh."
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Hỗ trợ paste nội dung từ trang web với định dạng và hình ảnh. Sử dụng thanh công cụ để định dạng văn bản.
+                  </p>
                 </div>
                 <div className="mb-6">
                   <label className="flex items-center">
@@ -608,6 +839,7 @@ const BlogController: React.FC<BlogControllerProps> = ({
                       setShowEditModal(false)
                       setEditingPost(null)
                       resetForm()
+                      setError(null)
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
