@@ -12,6 +12,18 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import { getMyTestResults, getMyBookings, type TestResult, type TestBooking } from '../services/testResultsService'
+import { 
+  getMenstrualCycles, 
+  getCyclePredictions, 
+  logMenstrualCycle, 
+  updateMenstrualCycle,
+  updatePillReminderSettings,
+  getPillReminderSettings,
+  type MenstrualCycle, 
+  type CyclePrediction, 
+  type MenstrualCycleData 
+} from '../services/healthTrackingService'
+import api from '../services/api'
 import AppointmentBooking from './AppointmentBooking'
 
 const UserDashboard: React.FC = () => {
@@ -26,9 +38,16 @@ const UserDashboard: React.FC = () => {
   
   // Menstrual cycle states
   const [showLogModal, setShowLogModal] = useState(false)
+  const [showEndCycleModal, setShowEndCycleModal] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [cycleNotifications, setCycleNotifications] = useState(true)
   const [pillReminderTime, setPillReminderTime] = useState('08:00')
+  
+  // Real menstrual cycle data
+  const [menstrualCycles, setMenstrualCycles] = useState<MenstrualCycle[]>([])
+  const [cyclePredictions, setCyclePredictions] = useState<CyclePrediction | null>(null)
+  const [isLoadingCycles, setIsLoadingCycles] = useState(false)
+  const [cycleError, setCycleError] = useState<string | null>(null)
   
   // TODO: Use bookings data for booking history or dashboard statistics
 
@@ -45,7 +64,20 @@ const UserDashboard: React.FC = () => {
       fetchTestResults()
       fetchBookings()
     }
+    if (activeView === 'menstrual-cycle' || activeView === 'dashboard') {
+      fetchMenstrualData()
+    }
   }, [activeView])
+
+  // Initialize pill reminder settings from user profile
+  useEffect(() => {
+    if (user?.wantsCycleNotifications !== undefined) {
+      setCycleNotifications(user.wantsCycleNotifications)
+    }
+    if (user?.pillReminderTime) {
+      setPillReminderTime(user.pillReminderTime)
+    }
+  }, [user])
 
   const fetchTestResults = async () => {
     setIsLoadingResults(true)
@@ -74,6 +106,286 @@ const UserDashboard: React.FC = () => {
       // TODO: Use bookings data for dashboard statistics or booking history
     } catch (error) {
       console.error('Failed to fetch bookings:', error)
+    }
+  }
+
+  const fetchMenstrualData = async () => {
+    setIsLoadingCycles(true)
+    setCycleError(null)
+    try {
+      // Fetch menstrual cycles and predictions in parallel
+      const [cycles, predictions] = await Promise.all([
+        getMenstrualCycles(),
+        getCyclePredictions().catch(() => null) // Don't fail if no predictions available
+      ])
+      
+      setMenstrualCycles(cycles)
+      setCyclePredictions(predictions)
+    } catch (error: any) {
+      console.error('Failed to fetch menstrual data:', error)
+      if (error.response?.status === 404) {
+        // No cycles recorded yet - this is normal for new users
+        setMenstrualCycles([])
+        setCyclePredictions(null)
+      } else {
+        setCycleError('Không thể tải dữ liệu chu kỳ. Vui lòng thử lại sau.')
+      }
+    } finally {
+      setIsLoadingCycles(false)
+    }
+  }
+
+  // Handle logging new menstrual cycle
+  const handleLogNewCycle = async (e: React.FormEvent) => {
+    console.log('Form submitted!') // Debug: Check if function is called
+    e.preventDefault()
+    
+    const formData = new FormData(e.target as HTMLFormElement)
+    const startDate = formData.get('startDate') as string
+    const cycleLength = parseInt(formData.get('cycleLength') as string)
+    
+    console.log('Form data extracted:', { startDate, cycleLength }) // Debug: Check form data
+    
+    if (!startDate || !cycleLength) {
+      console.error('Missing form data:', { startDate, cycleLength })
+      setCycleError('Vui lòng điền đầy đủ thông tin.')
+      return
+    }
+
+    // Validation: Check for future start date
+    const today = new Date()
+    const selectedDate = new Date(startDate)
+    if (selectedDate > today) {
+      setCycleError('Ngày bắt đầu không thể là ngày trong tương lai.')
+      return
+    }
+
+    // Validation: Check for active cycles
+    const activeCycle = menstrualCycles.find(cycle => !cycle.endDate)
+    if (activeCycle) {
+      setCycleError('Vui lòng kết thúc chu kỳ hiện tại trước khi tạo chu kỳ mới.')
+      return
+    }
+
+    // Validation: Check cycle length
+    if (cycleLength < 21 || cycleLength > 35) {
+      setCycleError('Độ dài chu kỳ phải từ 21 đến 35 ngày.')
+      return
+    }
+    
+    try {
+      const cycleData: MenstrualCycleData = {
+        startDate,
+        cycleLength
+      }
+      
+      console.log('Submitting new cycle:', cycleData) // Debug log
+      await logMenstrualCycle(cycleData)
+      setShowLogModal(false)
+      setCycleError(null) // Clear any previous errors
+      
+      // Refresh menstrual data
+      await fetchMenstrualData()
+    } catch (error: any) {
+      console.error('Failed to log menstrual cycle:', error)
+      // Handle specific API errors
+      if (error.response?.status === 400) {
+        setCycleError(error.response.data.message || 'Dữ liệu không hợp lệ.')
+      } else {
+        setCycleError('Không thể lưu chu kỳ. Vui lòng thử lại.')
+      }
+    }
+  }
+
+  // Handle ending current cycle
+  const handleEndCurrentCycle = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const activeCycle = menstrualCycles.find(cycle => !cycle.endDate)
+    if (!activeCycle) {
+      setCycleError('Không có chu kỳ nào đang diễn ra.')
+      return
+    }
+    
+    const formData = new FormData(e.target as HTMLFormElement)
+    const endDate = formData.get('endDate') as string
+    
+    if (!endDate) {
+      setCycleError('Vui lòng chọn ngày kết thúc.')
+      return
+    }
+
+    // Validation: End date cannot be before start date
+    const startDate = new Date(activeCycle.startDate)
+    const selectedEndDate = new Date(endDate)
+    if (selectedEndDate < startDate) {
+      setCycleError('Ngày kết thúc không thể trước ngày bắt đầu.')
+      return
+    }
+
+    // Validation: End date cannot be in the future
+    const today = new Date()
+    if (selectedEndDate > today) {
+      setCycleError('Ngày kết thúc không thể là ngày trong tương lai.')
+      return
+    }
+    
+    try {
+      console.log('Ending cycle:', activeCycle.cycleId, 'with end date:', endDate) // Debug log
+      await updateMenstrualCycle(activeCycle.cycleId, { endDate })
+      
+      setShowEndCycleModal(false)
+      setCycleError(null)
+      
+      // Refresh menstrual data
+      await fetchMenstrualData()
+    } catch (error: any) {
+      console.error('Failed to end cycle:', error)
+      if (error.response?.status === 400) {
+        setCycleError(error.response.data.message || 'Dữ liệu không hợp lệ.')
+      } else {
+        setCycleError('Không thể kết thúc chu kỳ. Vui lòng thử lại.')
+      }
+    }
+  }
+
+  // Handle updating cycle notifications
+  const handleCycleNotificationsToggle = async (enabled: boolean) => {
+    console.log('Cycle notifications toggle clicked:', enabled)
+    setCycleNotifications(enabled)
+    
+    try {
+      // ALWAYS include both fields - wantsCycleNotifications is required
+      const payload = {
+        wantsCycleNotifications: enabled,
+        pillReminderTime: enabled ? (pillReminder && pillReminderTime ? pillReminderTime + ":00.0000000" : null) : null
+      }
+      
+      // Business logic: If turning OFF cycle notifications, also turn off pill reminder switch
+      if (!enabled) {
+        setPillReminder(false)
+      }
+      
+      console.log('Sending cycle notifications update:', payload)
+      
+      await api.put('/api/CustomerProfile/notifications', payload)
+      console.log('Cycle notifications updated successfully')
+    } catch (error) {
+      console.error('Failed to update cycle notifications:', error)
+      // Revert on error
+      setCycleNotifications(!enabled)
+    }
+  }
+
+  // Handle updating pill reminder settings
+  const handlePillReminderToggle = async (enabled: boolean) => {
+    console.log('Pill reminder toggle clicked:', enabled)
+    
+    // Business logic: Can only enable pill reminder if cycle notifications are ON
+    if (enabled && !cycleNotifications) {
+      console.log('Cannot enable pill reminder without cycle notifications')
+      return
+    }
+    
+    // Business logic: Must have a time selected to enable pill reminder
+    if (enabled && !pillReminderTime) {
+      console.log('Cannot enable pill reminder without time selected')
+      return
+    }
+    
+    setPillReminder(enabled)
+    
+    try {
+      // ALWAYS include both fields - wantsCycleNotifications is required
+      const payload = {
+        wantsCycleNotifications: cycleNotifications, // Always include current state
+        pillReminderTime: enabled && pillReminderTime ? pillReminderTime + ":00.0000000" : null
+      }
+      
+      console.log('Sending pill reminder update:', payload)
+      
+      await api.put('/api/CustomerProfile/notifications', payload)
+      console.log('Pill reminder updated successfully')
+    } catch (error) {
+      console.error('Failed to update pill reminder:', error)
+      // Revert on error
+      setPillReminder(!enabled)
+    }
+  }
+
+  // Handle updating pill reminder time
+  const handlePillReminderTimeChange = async (time: string) => {
+    console.log('Pill reminder time changed:', time)
+    setPillReminderTime(time)
+    
+    // Only update if pill reminder is enabled and cycle notifications are on
+    if (pillReminder && cycleNotifications && time) {
+      try {
+        // ALWAYS include both fields - wantsCycleNotifications is required
+        const payload = {
+          wantsCycleNotifications: cycleNotifications, // Always include current state
+          pillReminderTime: time + ":00.0000000"
+        }
+        console.log('Sending pill reminder time update:', payload)
+        
+        await api.put('/api/CustomerProfile/notifications', payload)
+        console.log('Pill reminder time updated successfully')
+      } catch (error) {
+        console.error('Failed to update pill reminder time:', error)
+      }
+    }
+  }
+
+  // Calculate cycle predictions based on real data
+  const calculateCycleInfo = () => {
+    if (!menstrualCycles.length) {
+      return {
+        currentCycleDay: 0,
+        cycleLength: 28,
+        cyclePhase: 'Chưa có dữ liệu',
+        nextPeriodDate: 'Chưa xác định',
+        ovulationDate: 'Chưa xác định',
+        fertilityWindowEnd: 'Chưa xác định'
+      }
+    }
+
+    const latestCycle = menstrualCycles[0] // Assuming sorted by date
+    const startDate = new Date(latestCycle.startDate)
+    const today = new Date()
+    const daysSinceStart = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    const cycleLength = latestCycle.cycleLength || 28
+    const currentCycleDay = (daysSinceStart % cycleLength) + 1
+    
+    // Calculate phase based on cycle day
+    let cyclePhase = ''
+    if (currentCycleDay <= 5) {
+      cyclePhase = 'Kỳ kinh'
+    } else if (currentCycleDay <= 13) {
+      cyclePhase = 'Giai đoạn nang trứng'
+    } else if (currentCycleDay <= 15) {
+      cyclePhase = 'Rụng trứng'
+    } else {
+      cyclePhase = 'Giai đoạn hoàng thể'
+    }
+
+    // Use predictions if available, otherwise calculate
+    const nextPeriodDate = cyclePredictions?.nextPeriodDate || 
+      new Date(startDate.getTime() + cycleLength * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')
+    
+    const ovulationDate = cyclePredictions?.ovulationDate ||
+      new Date(startDate.getTime() + (cycleLength - 14) * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')
+    
+    const fertilityWindowEnd = cyclePredictions?.fertilityWindowEnd ||
+      new Date(startDate.getTime() + (cycleLength - 13) * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')
+
+    return {
+      currentCycleDay,
+      cycleLength,
+      cyclePhase,
+      nextPeriodDate,
+      ovulationDate,
+      fertilityWindowEnd
     }
   }
 
@@ -409,9 +721,9 @@ const UserDashboard: React.FC = () => {
 
   const renderMenstrualCycleView = () => {
     // Mock cycle data - would come from API
-    const currentCycleDay = 12
-    const cycleLength = 28
-    const cyclePhase = 'Giai đoạn nang trứng'
+    // Calculate real cycle data
+    const cycleInfo = calculateCycleInfo()
+    const { currentCycleDay, cycleLength, cyclePhase, nextPeriodDate, ovulationDate, fertilityWindowEnd } = cycleInfo
     
     const cycleHistory = [
       { startDate: '2024-11-15', endDate: '2024-11-20', actualLength: 28 },
@@ -419,11 +731,6 @@ const UserDashboard: React.FC = () => {
       { startDate: '2024-09-20', endDate: '2024-09-25', actualLength: 27 }
     ]
 
-    const handleLogNewCycle = (e: React.FormEvent) => {
-      e.preventDefault()
-      // TODO: Submit to API
-      setShowLogModal(false)
-    }
 
     return (
       <div className="space-y-8">
@@ -442,6 +749,109 @@ const UserDashboard: React.FC = () => {
             Ghi nhận Kỳ kinh Mới
           </button>
         </div>
+
+        {/* Loading State */}
+        {isLoadingCycles && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 font-secondary text-gray-600">Đang tải dữ liệu chu kỳ...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {cycleError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700 font-secondary">{cycleError}</p>
+            <button 
+              onClick={fetchMenstrualData}
+              className="mt-2 text-red-600 hover:text-red-800 font-secondary font-semibold"
+            >
+              Thử lại
+            </button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoadingCycles && !cycleError && menstrualCycles.length === 0 && (
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-border-subtle text-center">
+            <div className="max-w-md mx-auto">
+              <CalendarIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-primary font-semibold text-gray-600 mb-2">
+                Chưa có dữ liệu chu kỳ
+              </h3>
+              <p className="font-secondary text-gray-500 mb-4">
+                Hãy bắt đầu theo dõi chu kỳ kinh nguyệt của bạn để nhận được dự báo chính xác.
+              </p>
+              <button 
+                onClick={() => setShowLogModal(true)}
+                className="bg-primary text-text-light px-6 py-3 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors"
+              >
+                Ghi nhận Kỳ kinh Đầu tiên
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Current Cycle Status & Actions */}
+        {!isLoadingCycles && !cycleError && menstrualCycles.length > 0 && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-primary font-semibold text-text-dark">
+                Trạng thái chu kỳ hiện tại
+              </h3>
+              {menstrualCycles.find(cycle => !cycle.endDate) && (
+                <button 
+                  onClick={() => {
+                    console.log('End cycle button clicked!') // Debug log
+                    setShowEndCycleModal(true)
+                  }}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg font-secondary font-bold hover:bg-red-600 transition-colors"
+                >
+                  Kết thúc chu kỳ
+                </button>
+              )}
+            </div>
+            
+            {(() => {
+              const activeCycle = menstrualCycles.find(cycle => !cycle.endDate)
+              const latestCycle = menstrualCycles[0]
+              const displayCycle = activeCycle || latestCycle
+              
+              console.log('Displaying cycle:', displayCycle) // Debug log
+              console.log('Active cycle found:', !!activeCycle) // Debug log
+              
+              if (!displayCycle) return null
+              
+              return (
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <p className="font-secondary text-gray-600 text-sm mb-1">Ngày bắt đầu</p>
+                    <p className="text-lg font-primary font-semibold text-text-dark">
+                      {new Date(displayCycle.startDate).toLocaleDateString('vi-VN')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-secondary text-gray-600 text-sm mb-1">Trạng thái</p>
+                    <p className="text-lg font-primary font-semibold text-text-dark">
+                      {displayCycle.endDate ? 'Đã kết thúc' : 'Đang diễn ra'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-secondary text-gray-600 text-sm mb-1">
+                      {displayCycle.endDate ? 'Ngày kết thúc' : 'Ngày hiện tại'}
+                    </p>
+                    <p className="text-lg font-primary font-semibold text-text-dark">
+                      {displayCycle.endDate 
+                        ? new Date(displayCycle.endDate).toLocaleDateString('vi-VN')
+                        : `Ngày ${calculateCycleInfo().currentCycleDay}`
+                      }
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        )}
 
         {/* Current Cycle Visual Tracker */}
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-border-subtle">
@@ -505,7 +915,7 @@ const UserDashboard: React.FC = () => {
                   Kết thúc cửa sổ thụ thai
                 </p>
                 <p className="text-lg font-primary font-semibold text-text-dark">
-                  16/07/2025
+                  {fertilityWindowEnd}
                 </p>
               </div>
             </div>
@@ -546,16 +956,16 @@ const UserDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {cycleHistory.map((cycle, index) => (
+                    {menstrualCycles.map((cycle, index) => (
                       <tr key={index} className="border-b border-gray-100">
                         <td className="py-3 font-secondary text-text-dark">
                           {new Date(cycle.startDate).toLocaleDateString('vi-VN')}
                         </td>
                         <td className="py-3 font-secondary text-text-dark">
-                          {new Date(cycle.endDate).toLocaleDateString('vi-VN')}
+                          {cycle.endDate ? new Date(cycle.endDate).toLocaleDateString('vi-VN') : 'Đang diễn ra'}
                         </td>
                         <td className="py-3 font-secondary text-text-dark">
-                          {cycle.actualLength} ngày
+                          {cycle.cycleLength} ngày
                         </td>
                       </tr>
                     ))}
@@ -567,6 +977,7 @@ const UserDashboard: React.FC = () => {
         </div>
 
         {/* Settings and Reminders */}
+        {!isLoadingCycles && !cycleError && menstrualCycles.length > 0 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
           <h3 className="text-lg font-primary font-semibold text-text-dark mb-6">
             Cài đặt & Nhắc nhở
@@ -584,7 +995,7 @@ const UserDashboard: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => setCycleNotifications(!cycleNotifications)}
+                onClick={() => handleCycleNotificationsToggle(!cycleNotifications)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   cycleNotifications ? 'bg-primary' : 'bg-gray-300'
                 }`}
@@ -606,7 +1017,7 @@ const UserDashboard: React.FC = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setPillReminder(!pillReminder)}
+                  onClick={() => handlePillReminderToggle(!pillReminder)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     pillReminder ? 'bg-primary' : 'bg-gray-300'
                   }`}
@@ -628,7 +1039,7 @@ const UserDashboard: React.FC = () => {
                   <input
                     type="time"
                     value={pillReminderTime}
-                    onChange={(e) => setPillReminderTime(e.target.value)}
+                    onChange={(e) => handlePillReminderTimeChange(e.target.value)}
                     className="px-4 py-2 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
@@ -636,6 +1047,7 @@ const UserDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Log New Cycle Modal */}
         {showLogModal && (
@@ -652,6 +1064,7 @@ const UserDashboard: React.FC = () => {
                   </label>
                   <input
                     type="date"
+                    name="startDate"
                     required
                     className="w-full px-4 py-3 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
@@ -663,6 +1076,7 @@ const UserDashboard: React.FC = () => {
                   </label>
                   <input
                     type="number"
+                    name="cycleLength"
                     min="21"
                     max="35"
                     defaultValue="28"
@@ -684,6 +1098,65 @@ const UserDashboard: React.FC = () => {
                     className="flex-1 bg-primary text-text-light px-6 py-3 rounded-lg font-secondary font-bold hover:bg-primary-600 transition-colors"
                   >
                     Lưu Chu Kỳ
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* End Cycle Modal */}
+        {showEndCycleModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+              <h3 className="text-xl font-primary font-semibold text-text-dark mb-6">
+                Kết thúc Chu kỳ Hiện tại
+              </h3>
+              
+              {(() => {
+                const activeCycle = menstrualCycles.find(cycle => !cycle.endDate)
+                if (!activeCycle) return null
+                
+                return (
+                  <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-secondary text-gray-600 text-sm">Chu kỳ bắt đầu:</p>
+                    <p className="font-primary font-semibold text-text-dark">
+                      {new Date(activeCycle.startDate).toLocaleDateString('vi-VN')}
+                    </p>
+                  </div>
+                )
+              })()}
+              
+              <form onSubmit={handleEndCurrentCycle} className="space-y-4">
+                <div>
+                  <label className="block font-secondary text-text-dark mb-2">
+                    Ngày kết thúc kỳ kinh
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    max={new Date().toISOString().split('T')[0]} // Cannot be future date
+                    required
+                    className="w-full px-4 py-3 border border-border-subtle rounded-lg font-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Chọn ngày cuối cùng của kỳ kinh
+                  </p>
+                </div>
+                
+                <div className="flex space-x-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEndCycleModal(false)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-secondary font-bold hover:bg-gray-50 transition-colors"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-red-500 text-white px-6 py-3 rounded-lg font-secondary font-bold hover:bg-red-600 transition-colors"
+                  >
+                    Kết thúc chu kỳ
                   </button>
                 </div>
               </form>
