@@ -55,10 +55,27 @@ const ResultEntryModal: React.FC<ResultEntryModalProps> = ({
       const details = await staffService.getServiceDetails(booking.serviceId!)
       console.log('Service details response:', details) // Debug log
       
+      // Check if details exists
+      if (!details) {
+        setError('Không thể tải thông tin dịch vụ.')
+        return
+      }
+      
       setServiceDetails(details)
       
-      // Handle different response structures
-      const analytes = details.analytes || details.data?.analytes || []
+      // Handle different response structures with proper null checks
+      let analytes = []
+      
+      if (details.analytes && Array.isArray(details.analytes)) {
+        analytes = details.analytes
+      } else if (details.data?.analytes && Array.isArray(details.data.analytes)) {
+        analytes = details.data.analytes
+      } else if (Array.isArray(details)) {
+        // In case the response is directly an array
+        analytes = details
+      }
+      
+      console.log('Extracted analytes:', analytes) // Debug log
       
       if (!Array.isArray(analytes) || analytes.length === 0) {
         setError('Dịch vụ này không có analytes để nhập kết quả.')
@@ -67,8 +84,8 @@ const ResultEntryModal: React.FC<ResultEntryModalProps> = ({
       
       // Initialize analyte results with default values
       const initialResults = analytes.map((analyte: Analyte) => ({
-        analyteId: analyte.analyteId,
-        analyteName: analyte.analyteName,
+        analyteId: analyte.analyteId || 0,
+        analyteName: analyte.analyteName || 'Unknown',
         result: '',
         unit: analyte.defaultUnit || '',
         referenceRange: analyte.defaultReferenceRange || '',
