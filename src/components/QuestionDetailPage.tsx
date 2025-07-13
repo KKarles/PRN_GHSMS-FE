@@ -37,16 +37,28 @@ const QuestionDetailPage: React.FC = () => {
   const navigate = useNavigate();
 
   const fetchData = async () => {
+    if (!questionId) {
+      setError('ID câu hỏi không hợp lệ');
+      return;
+    }
+    
     try {
-      const qRes = await getQuestionById(questionId!);
+      const qRes = await getQuestionById(questionId);
       if (!qRes.data.success) throw new Error(qRes.data.message);
       const q = qRes.data.data;
-      const ansRes = await getAnswersByQuestionId(questionId!);
+      const ansRes = await getAnswersByQuestionId(questionId);
       if (!ansRes.data.success) throw new Error(ansRes.data.message);
       setQuestion({ ...q, answers: ansRes.data.data });
     } catch (err: any) {
+      console.error('Error fetching question:', err);
       setQuestion(null);
-      setError(err?.message || 'Không tìm thấy câu hỏi.');
+      if (err.response?.status === 500) {
+        setError('Lỗi máy chủ. Vui lòng thử lại sau.');
+      } else if (err.response?.status === 404) {
+        setError('Không tìm thấy câu hỏi.');
+      } else {
+        setError(err?.message || 'Có lỗi xảy ra khi tải câu hỏi.');
+      }
     }
   };
 
