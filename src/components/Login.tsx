@@ -17,16 +17,6 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Function to determine redirect path based on user roles
-  const getRedirectPath = (userRoles: string[]) => {
-    if (userRoles.includes('Consultant')) {
-      return '/consultant-dashboard'
-    } else if (userRoles.includes('Admin')) {
-      return '/admin-dashboard'
-    } else {
-      return '/dashboard' // Default for Customer role
-    }
-  }
 
   // Get the page user was trying to access before login
   const from = location.state?.from?.pathname
@@ -63,7 +53,7 @@ const Login: React.FC = () => {
         } else if (userRoles.includes('Manager')) {
           defaultRedirect = '/manager/dashboard'
         } else if (userRoles.includes('Consultant')) {
-          defaultRedirect = '/consultant/dashboard'
+          defaultRedirect = '/consultant-dashboard'
         } else if (userRoles.includes('Staff')) {
           defaultRedirect = '/staff/dashboard'
         }
