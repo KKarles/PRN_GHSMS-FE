@@ -24,6 +24,7 @@ import {
   type MenstrualCycleData 
 } from '../services/healthTrackingService'
 import api from '../services/api'
+import { getUserAppointments, type Appointment } from '../services/appointmentService'
 import AppointmentBooking from './AppointmentBooking'
 
 const UserDashboard: React.FC = () => {
@@ -33,6 +34,8 @@ const UserDashboard: React.FC = () => {
   const [pillReminder, setPillReminder] = useState(false)
   const [testResults, setTestResults] = useState<TestResult[]>([])
   const [bookings, setBookings] = useState<TestBooking[]>([])
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [bookingType, setBookingType] = useState<'test' | 'consultation'>('test')
   const [isLoadingResults, setIsLoadingResults] = useState(false)
   const [resultsError, setResultsError] = useState<string | null>(null)
   
@@ -386,6 +389,15 @@ const UserDashboard: React.FC = () => {
       nextPeriodDate,
       ovulationDate,
       fertilityWindowEnd
+    }
+  }
+
+  const fetchAppointments = async () => {
+    try {
+      const userAppointments = await getUserAppointments()
+      setAppointments(userAppointments)
+    } catch (error) {
+      console.error('Failed to fetch appointments:', error)
     }
   }
 
@@ -1227,6 +1239,15 @@ const UserDashboard: React.FC = () => {
       return groups
     }
 
+    const groupAppointmentsByStatus = (appointments: Appointment[]) => {
+      const groups = {
+        upcoming: appointments.filter(a => ['Scheduled', 'Confirmed'].includes(a.appointmentStatus)),
+        inProgress: appointments.filter(a => ['Pending'].includes(a.appointmentStatus)),
+        completed: appointments.filter(a => ['Completed'].includes(a.appointmentStatus))
+      }
+      return groups
+    }
+
     const getStatusColor = (status: string) => {
       switch (status) {
         case 'Booked':
@@ -1252,8 +1273,35 @@ const UserDashboard: React.FC = () => {
           return 'Đang xử lý'
         case 'ResultReady':
           return 'Có kết quả'
+        case 'Scheduled':
+          return 'Đã lên lịch'
+        case 'Confirmed':
+          return 'Đã xác nhận'
+        case 'Pending':
+          return 'Đang chờ'
+        case 'Completed':
+          return 'Đã hoàn thành'
+        case 'Cancelled':
+          return 'Đã hủy'
         default:
           return status
+      }
+    }
+
+    const getAppointmentStatusColor = (status: string) => {
+      switch (status) {
+        case 'Scheduled':
+          return 'bg-blue-50 text-blue-700 border-blue-200'
+        case 'Confirmed':
+          return 'bg-green-50 text-green-700 border-green-200'
+        case 'Pending':
+          return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+        case 'Completed':
+          return 'bg-green-50 text-green-700 border-green-200'
+        case 'Cancelled':
+          return 'bg-red-50 text-red-700 border-red-200'
+        default:
+          return 'bg-gray-50 text-gray-700 border-gray-200'
       }
     }
 
@@ -1273,32 +1321,64 @@ const UserDashboard: React.FC = () => {
       }
     }
 
-    if (bookings.length === 0) {
+    const currentData = bookingType === 'test' ? bookings : appointments
+    const hasData = currentData.length > 0
+
+    if (!hasData) {
       return (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-primary font-semibold text-text-dark">Lịch hẹn của tôi</h2>
             <button
-              onClick={() => window.location.href = '/book-service'}
+              onClick={() => bookingType === 'test' ? window.location.href = '/book-service' : setActiveView('appointment-booking')}
               className="bg-primary text-text-light px-6 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
             >
-              Đặt hẹn mới
+              {bookingType === 'test' ? 'Đặt lịch xét nghiệm' : 'Đặt lịch tư vấn'}
             </button>
+          </div>
+
+          {/* Booking Type Toggle */}
+          <div className="flex justify-center">
+            <div className="bg-gray-100 rounded-lg p-1 flex">
+              <button
+                onClick={() => setBookingType('test')}
+                className={`px-6 py-2 rounded-md font-secondary font-medium transition-colors ${
+                  bookingType === 'test'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Lịch Xét Nghiệm
+              </button>
+              <button
+                onClick={() => setBookingType('consultation')}
+                className={`px-6 py-2 rounded-md font-secondary font-medium transition-colors ${
+                  bookingType === 'consultation'
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Lịch Tư Vấn
+              </button>
+            </div>
           </div>
           
           <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-border-subtle">
             <ClockIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-primary font-semibold text-text-dark mb-2">
-              Chưa có lịch hẹn nào
+              {bookingType === 'test' ? 'Chưa có lịch xét nghiệm nào' : 'Chưa có lịch tư vấn nào'}
             </h3>
             <p className="font-secondary text-gray-600 mb-6">
-              Bạn chưa đặt lịch hẹn xét nghiệm nào. Hãy bắt đầu hành trình chăm sóc sức khỏe của bạn.
+              {bookingType === 'test' 
+                ? 'Bạn chưa đặt lịch hẹn xét nghiệm nào. Hãy bắt đầu hành trình chăm sóc sức khỏe của bạn.'
+                : 'Bạn chưa đặt lịch tư vấn nào. Hãy đặt lịch tư vấn với chuyên gia để được hỗ trợ tốt nhất.'
+              }
             </p>
             <button
-              onClick={() => window.location.href = '/book-service'}
+              onClick={() => bookingType === 'test' ? window.location.href = '/book-service' : setActiveView('appointment-booking')}
               className="bg-primary text-text-light px-8 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
             >
-              Đặt lịch hẹn đầu tiên
+              {bookingType === 'test' ? 'Đặt lịch xét nghiệm đầu tiên' : 'Đặt lịch tư vấn đầu tiên'}
             </button>
           </div>
         </div>
@@ -1306,77 +1386,176 @@ const UserDashboard: React.FC = () => {
     }
 
     const groupedBookings = groupBookingsByStatus(bookings)
+    const groupedAppointments = groupAppointmentsByStatus(appointments)
 
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-primary font-semibold text-text-dark">Lịch hẹn của tôi</h2>
           <button
-            onClick={() => window.location.href = '/book-service'}
+            onClick={() => bookingType === 'test' ? window.location.href = '/book-service' : setActiveView('appointment-booking')}
             className="bg-primary text-text-light px-6 py-3 rounded-full font-secondary font-bold hover:bg-primary-600 transition-colors"
           >
-            Đặt hẹn mới
+            {bookingType === 'test' ? 'Đặt lịch xét nghiệm' : 'Đặt lịch tư vấn'}
           </button>
         </div>
 
+        {/* Booking Type Toggle */}
+        <div className="flex justify-center">
+          <div className="bg-gray-100 rounded-lg p-1 flex">
+            <button
+              onClick={() => setBookingType('test')}
+              className={`px-6 py-2 rounded-md font-secondary font-medium transition-colors ${
+                bookingType === 'test'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Lịch Xét Nghiệm ({bookings.length})
+            </button>
+            <button
+              onClick={() => setBookingType('consultation')}
+              className={`px-6 py-2 rounded-md font-secondary font-medium transition-colors ${
+                bookingType === 'consultation'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Lịch Tư Vấn ({appointments.length})
+            </button>
+          </div>
+        </div>
+
         <div className="space-y-8">
-          {/* Upcoming Bookings */}
-          {groupedBookings.upcoming.length > 0 && (
-            <section>
-              <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
-                Lịch hẹn sắp tới ({groupedBookings.upcoming.length})
-              </h3>
-              <div className="space-y-4">
-                {groupedBookings.upcoming.map((booking) => {
-                  const { date, time } = formatDateTime(booking.appointmentTime)
-                  return (
-                    <div key={booking.bookingId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center mb-3">
-                            <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getStatusColor(booking.bookingStatus)}`}>
-                              {getStatusText(booking.bookingStatus)}
-                            </span>
-                          </div>
-                          
-                          <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
-                            {booking.serviceName}
-                          </h4>
-                          
-                          <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
-                            <div className="flex items-center">
-                              <CalendarIcon className="h-4 w-4 mr-2" />
-                              {date}
+          {bookingType === 'test' ? (
+            <>
+              {/* Test Bookings - Upcoming */}
+              {groupedBookings.upcoming.length > 0 && (
+                <section>
+                  <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                    Lịch xét nghiệm sắp tới ({groupedBookings.upcoming.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {groupedBookings.upcoming.map((booking) => {
+                      const { date, time } = formatDateTime(booking.appointmentTime)
+                      return (
+                        <div key={booking.bookingId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center mb-3">
+                                <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getStatusColor(booking.bookingStatus)}`}>
+                                  {getStatusText(booking.bookingStatus)}
+                                </span>
+                              </div>
+                              
+                              <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
+                                {booking.serviceName}
+                              </h4>
+                              
+                              <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
+                                <div className="flex items-center">
+                                  <CalendarIcon className="h-4 w-4 mr-2" />
+                                  {date}
+                                </div>
+                                <div className="flex items-center">
+                                  <ClockIcon className="h-4 w-4 mr-2" />
+                                  {time}
+                                </div>
+                              </div>
+                              
+                              <div className="mt-3">
+                                <p className="text-sm font-secondary text-gray-600">
+                                  <strong>Mã đặt hẹn:</strong> #{booking.bookingId}
+                                </p>
+                                <p className="text-sm font-secondary text-gray-600">
+                                  <strong>Chi phí:</strong> {booking.servicePrice?.toLocaleString('vi-VN')} VNĐ
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center">
-                              <ClockIcon className="h-4 w-4 mr-2" />
-                              {time}
-                            </div>
-                          </div>
-                          
-                          <div className="mt-3">
-                            <p className="text-sm font-secondary text-gray-600">
-                              <strong>Mã đặt hẹn:</strong> #{booking.bookingId}
-                            </p>
-                            <p className="text-sm font-secondary text-gray-600">
-                              <strong>Chi phí:</strong> {booking.servicePrice?.toLocaleString('vi-VN')} VNĐ
-                            </p>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
+                      )
+                    })}
+                  </div>
+                </section>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Consultation Appointments - Upcoming */}
+              {groupedAppointments.upcoming.length > 0 && (
+                <section>
+                  <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                    Lịch tư vấn sắp tới ({groupedAppointments.upcoming.length})
+                  </h3>
+                  <div className="space-y-4">
+                    {groupedAppointments.upcoming.map((appointment) => {
+                      const startDate = new Date(appointment.startTime)
+                      const endDate = new Date(appointment.endTime)
+                      return (
+                        <div key={appointment.appointmentId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center mb-3">
+                                <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getAppointmentStatusColor(appointment.appointmentStatus)}`}>
+                                  {getStatusText(appointment.appointmentStatus)}
+                                </span>
+                              </div>
+                              
+                              <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
+                                Tư vấn với {appointment.consultantName}
+                              </h4>
+                              
+                              <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
+                                <div className="flex items-center">
+                                  <CalendarIcon className="h-4 w-4 mr-2" />
+                                  {startDate.toLocaleDateString('vi-VN')}
+                                </div>
+                                <div className="flex items-center">
+                                  <ClockIcon className="h-4 w-4 mr-2" />
+                                  {startDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              </div>
+                              
+                              <div className="mt-3">
+                                <p className="text-sm font-secondary text-gray-600">
+                                  <strong>Mã cuộc hẹn:</strong> #{appointment.appointmentId}
+                                </p>
+                                <p className="text-sm font-secondary text-gray-600">
+                                  <strong>Chuyên môn:</strong> {appointment.consultantSpecialization}
+                                </p>
+                                {appointment.meetingUrl && (
+                                  <div className="mt-2">
+                                    <a
+                                      href={appointment.meetingUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors"
+                                    >
+                                      <VideoCameraIcon className="h-4 w-4 mr-1" />
+                                      Tham gia cuộc họp
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              )}
+            </>
           )}
 
-          {/* In Progress Bookings */}
-          {groupedBookings.inProgress.length > 0 && (
-            <section>
-              <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
-                Đang xử lý ({groupedBookings.inProgress.length})
-              </h3>
+          {/* In Progress Section */}
+          {bookingType === 'test' ? (
+            groupedBookings.inProgress.length > 0 && (
+              <section>
+                <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                  Đang xử lý ({groupedBookings.inProgress.length})
+                </h3>
               <div className="space-y-4">
                 {groupedBookings.inProgress.map((booking) => {
                   const { date, time } = formatDateTime(booking.appointmentTime)
@@ -1417,10 +1596,13 @@ const UserDashboard: React.FC = () => {
                 })}
               </div>
             </section>
-          )}
+          )) : ""
+        }
+          
 
           {/* Completed Bookings */}
-          {groupedBookings.completed.length > 0 && (
+          {bookingType === 'test' ? (
+            groupedBookings.completed.length > 0 && (
             <section>
               <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
                 Đã hoàn thành ({groupedBookings.completed.length})
@@ -1474,6 +1656,58 @@ const UserDashboard: React.FC = () => {
                 })}
               </div>
             </section>
+            )
+          ) : (
+            groupedAppointments.completed.length > 0 && (
+              <section>
+                <h3 className="text-lg font-primary font-semibold text-text-dark mb-4">
+                  Đã hoàn thành ({groupedAppointments.completed.length})
+                </h3>
+                <div className="space-y-4">
+                  {groupedAppointments.completed.map((appointment) => {
+                    const startDate = new Date(appointment.startTime)
+                    const endDate = new Date(appointment.endTime)
+                    return (
+                      <div key={appointment.appointmentId} className="bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-3">
+                              <span className={`px-3 py-1 rounded-full text-sm font-secondary border ${getAppointmentStatusColor(appointment.appointmentStatus)}`}>
+                                {getStatusText(appointment.appointmentStatus)}
+                              </span>
+                            </div>
+                            
+                            <h4 className="text-lg font-primary font-semibold text-text-dark mb-2">
+                              Tư vấn với {appointment.consultantName}
+                            </h4>
+                            
+                            <div className="grid md:grid-cols-2 gap-4 text-sm font-secondary text-gray-600">
+                              <div className="flex items-center">
+                                <CalendarIcon className="h-4 w-4 mr-2" />
+                                {startDate.toLocaleDateString('vi-VN')}
+                              </div>
+                              <div className="flex items-center">
+                                <ClockIcon className="h-4 w-4 mr-2" />
+                                {startDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                            
+                            <div className="mt-3">
+                              <p className="text-sm font-secondary text-gray-600">
+                                <strong>Mã cuộc hẹn:</strong> #{appointment.appointmentId}
+                              </p>
+                              <p className="text-sm font-secondary text-gray-600">
+                                <strong>Chuyên môn:</strong> {appointment.consultantSpecialization}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )
           )}
         </div>
       </div>

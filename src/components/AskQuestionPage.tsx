@@ -17,7 +17,11 @@ const AskQuestionPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await api.post('/api/Question', { title, content, isAnonymous });
+      await api.post('/api/Question', {
+        Title: title,
+        QuestionText: content,
+        IsAnonymous: isAnonymous
+      });
       navigate('/questions');
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Đã có lỗi xảy ra');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { 
   CalendarIcon, 
   ClockIcon, 
@@ -8,10 +8,11 @@ import {
   XCircleIcon,
   VideoCameraIcon,
   ChartBarIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  UserCircleIcon,
+  ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
-import ConsultantNavigation from './ConsultantNavigation'
 import { 
   getConsultantAppointments, 
   updateAppointmentStatus, 
@@ -22,8 +23,16 @@ import {
 
 const ConsultantDashboard: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState('dashboard')
+
+  // Check if we came from profile page with a specific view
+  useEffect(() => {
+    if (location.state?.activeView) {
+      setActiveView(location.state.activeView)
+    }
+  }, [location.state])
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [stats, setStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -92,10 +101,17 @@ const ConsultantDashboard: React.FC = () => {
   const menuItems = [
     { id: 'dashboard', text: 'Tổng quan', icon: ChartBarIcon },
     { id: 'appointments', text: 'Cuộc hẹn', icon: CalendarIcon },
-    { id: 'schedule', text: 'Lịch làm việc', icon: ClockIcon },
-    { id: 'patients', text: 'Bệnh nhân', icon: UserGroupIcon },
     { id: 'settings', text: 'Cài đặt', icon: Cog6ToothIcon },
   ]
+
+  const handleProfile = () => {
+    navigate('/consultant/my-profile')
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -301,24 +317,6 @@ const ConsultantDashboard: React.FC = () => {
         return renderDashboardView()
       case 'appointments':
         return renderAppointmentsView()
-      case 'schedule':
-        return (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-2xl font-primary font-semibold text-text-dark mb-4">
-              Lịch làm việc
-            </h2>
-            <p className="text-gray-600">Tính năng quản lý lịch làm việc sẽ được triển khai sau.</p>
-          </div>
-        )
-      case 'patients':
-        return (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-2xl font-primary font-semibold text-text-dark mb-4">
-              Quản lý bệnh nhân
-            </h2>
-            <p className="text-gray-600">Tính năng quản lý bệnh nhân sẽ được triển khai sau.</p>
-          </div>
-        )
       case 'settings':
         return (
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -335,8 +333,6 @@ const ConsultantDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-light">
-      <ConsultantNavigation />
-      
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         {error && (
@@ -351,27 +347,48 @@ const ConsultantDashboard: React.FC = () => {
           </div>
         )}
         
-        {/* Sub Navigation for Dashboard Views */}
+        {/* Main Navigation */}
         <div className="bg-white rounded-lg shadow-sm mb-6">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
-              {menuItems.map((item) => {
-                const Icon = item.icon
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveView(item.id)}
-                    className={`flex items-center px-3 py-4 text-sm font-secondary font-medium transition-colors ${
-                      activeView === item.id
-                        ? 'text-primary border-b-2 border-primary'
-                        : 'text-gray-600 hover:text-primary'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 mr-2" />
-                    {item.text}
-                  </button>
-                )
-              })}
+            <nav className="flex items-center justify-between px-6">
+              {/* Left side - Main menu items */}
+              <div className="flex space-x-8">
+                {menuItems.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`flex items-center px-3 py-4 text-sm font-secondary font-medium transition-colors ${
+                        activeView === item.id
+                          ? 'text-primary border-b-2 border-primary'
+                          : 'text-gray-600 hover:text-primary'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 mr-2" />
+                      {item.text}
+                    </button>
+                  )
+                })}
+              </div>
+              
+              {/* Right side - Profile and Logout */}
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleProfile}
+                  className="flex items-center px-3 py-2 text-sm font-secondary font-medium text-gray-600 hover:text-primary transition-colors"
+                >
+                  <UserCircleIcon className="h-5 w-5 mr-2" />
+                  Hồ sơ của tôi
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-3 py-2 text-sm font-secondary font-medium text-gray-600 hover:text-red-600 transition-colors"
+                >
+                  <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
+                  Đăng xuất
+                </button>
+              </div>
             </nav>
           </div>
         </div>
