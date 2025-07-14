@@ -66,6 +66,7 @@ const UserDashboard: React.FC = () => {
     if (activeView === 'test-results' || activeView === 'dashboard' || activeView === 'my-bookings') {
       fetchTestResults()
       fetchBookings()
+      fetchAppointments()
     }
     if (activeView === 'menstrual-cycle' || activeView === 'dashboard') {
       fetchMenstrualData()

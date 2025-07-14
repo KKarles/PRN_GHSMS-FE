@@ -11,15 +11,15 @@ import {
 
 interface Answer {
   id: number;
-  content: string;
-  createdByName: string | null;
+  answerText: string;
+  consultantName: string | null;
   createdAt: string;
 }
 
 interface QuestionDetail {
   id: number;
   title: string;
-  content: string;
+  questionText: string;
   createdByName: string | null;
   isAnonymous: boolean;
   createdAt: string;
@@ -142,7 +142,7 @@ const QuestionDetailPage: React.FC = () => {
             {question.isAnonymous ? 'Anonymous' : question.createdByName}
           </span>
         </div>
-        <div className="text-gray-700 mb-2">{question.content}</div>
+        <div className="text-gray-700 mb-2">{question.questionText}</div>
         <div className="text-xs text-gray-400">{new Date(question.createdAt).toLocaleString()}</div>
         {canDeleteQuestion && (
           <button
@@ -162,7 +162,7 @@ const QuestionDetailPage: React.FC = () => {
           question.answers.map(ans => (
             <div key={ans.id} className="mb-4 p-4 border rounded">
               <div className="flex justify-between items-center mb-1">
-                <span className="font-medium">{ans.createdByName}</span>
+                <span className="font-medium">{ans.consultantName}</span>
                 <span className="text-xs text-gray-400">{new Date(ans.createdAt).toLocaleString()}</span>
                 {canDeleteAnswer(ans) && (
                   <button
@@ -174,7 +174,7 @@ const QuestionDetailPage: React.FC = () => {
                   </button>
                 )}
               </div>
-              <div className="text-gray-700">{ans.content}</div>
+              <div className="text-gray-700">{ans.answerText}</div>
             </div>
           ))
         )}
