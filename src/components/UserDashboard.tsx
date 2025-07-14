@@ -66,6 +66,7 @@ const UserDashboard: React.FC = () => {
     if (activeView === 'test-results' || activeView === 'dashboard' || activeView === 'my-bookings') {
       fetchTestResults()
       fetchBookings()
+      fetchAppointments()
     }
     if (activeView === 'menstrual-cycle' || activeView === 'dashboard') {
       fetchMenstrualData()
@@ -436,25 +437,31 @@ const UserDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mb-4">
-            {bookings.filter(b => b.bookingStatus === 'Booked').length > 0 ? (
-              <div>
-                <p className="text-2xl font-primary font-bold text-text-dark">
-                  {bookings.filter(b => b.bookingStatus === 'Booked').length}
-                </p>
-                <p className="font-secondary text-gray-600 text-sm">
-                  lịch hẹn sắp tới
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-lg font-primary font-semibold text-gray-500">
-                  Không có lịch hẹn
-                </p>
-                <p className="font-secondary text-gray-600 text-sm">
-                  Đặt lịch hẹn mới ngay
-                </p>
-              </div>
-            )}
+            {(() => {
+              const upcomingTestBookings = bookings.filter(b => b.bookingStatus === 'Booked').length
+              const upcomingConsultations = appointments.filter(a => ['Scheduled', 'Confirmed'].includes(a.appointmentStatus)).length
+              const totalUpcoming = upcomingTestBookings + upcomingConsultations
+              
+              return totalUpcoming > 0 ? (
+                <div>
+                  <p className="text-2xl font-primary font-bold text-text-dark">
+                    {totalUpcoming}
+                  </p>
+                  <p className="font-secondary text-gray-600 text-sm">
+                    lịch hẹn sắp tới
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-lg font-primary font-semibold text-gray-500">
+                    Không có lịch hẹn
+                  </p>
+                  <p className="font-secondary text-gray-600 text-sm">
+                    Đặt lịch hẹn mới ngay
+                  </p>
+                </div>
+              )
+            })()}
           </div>
           <button 
             onClick={() => setActiveView('my-bookings')}
