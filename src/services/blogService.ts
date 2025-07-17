@@ -102,6 +102,37 @@ export const getBlogPost = async (id: number): Promise<BlogPostResponse> => {
   }
 }
 
+// New function specifically for getting full blog post content for editing
+// This is an alias for getBlogPost but with clearer naming for the edit functionality
+export const getBlogPostById = async (id: number): Promise<BlogPostResponse> => {
+  try {
+    const response = await api.get(`/api/BlogPost/${id}`)
+    return response.data
+  } catch (error) {
+    console.error('Failed to fetch blog post by ID:', error)
+    throw error
+  }
+}
+
+// Alternative function if your backend has a specific endpoint for full content
+export const getBlogPostFullContent = async (id: number): Promise<BlogPostResponse> => {
+  try {
+    // Try the full content endpoint first if it exists
+    let response
+    try {
+      response = await api.get(`/api/BlogPost/${id}/full`)
+    } catch (fullContentError) {
+      // Fallback to regular endpoint if full content endpoint doesn't exist
+      console.warn('Full content endpoint not available, using regular endpoint')
+      response = await api.get(`/api/BlogPost/${id}`)
+    }
+    return response.data
+  } catch (error) {
+    console.error('Failed to fetch full blog post content:', error)
+    throw error
+  }
+}
+
 export const searchBlogPosts = async (
   searchTerm: string, 
   page = 1, 
@@ -289,4 +320,50 @@ export const getStatusDisplayText = (status: string): string => {
     default:
       return status
   }
+}
+
+// Helper function to validate HTML content and ensure it's safe
+export const sanitizeHtmlContent = (content: string): string => {
+  if (!content || typeof content !== 'string') {
+    return ''
+  }
+  
+  // Basic HTML validation - you might want to use a proper HTML sanitizer library
+  // like DOMPurify for production use
+  try {
+    // Remove script tags for basic security
+    const cleaned = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    return cleaned
+  } catch (error) {
+    console.error('Error sanitizing HTML content:', error)
+    return content
+  }
+}
+
+// Helper function to check if content has rich formatting
+export const hasRichFormatting = (content: string): boolean => {
+  if (!content || typeof content !== 'string') {
+    return false
+  }
+  
+  // Check for common HTML tags that indicate rich formatting
+  const richFormattingTags = /<(img|a|strong|em|b|i|u|ul|ol|li|blockquote|h[1-6]|p|div|span)[^>]*>/i
+  return richFormattingTags.test(content)
+}
+
+// Function to extract images from content
+export const extractImagesFromContent = (content: string): string[] => {
+  if (!content || typeof content !== 'string') {
+    return []
+  }
+  
+  const imgRegex = /<img[^>]+src="([^">]+)"/g
+  const images: string[] = []
+  let match
+  
+  while ((match = imgRegex.exec(content)) !== null) {
+    images.push(match[1])
+  }
+  
+  return images
 }

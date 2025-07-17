@@ -7,6 +7,7 @@ import {
   updateBlogPost, 
   deleteBlogPost, 
   getBlogPostStats,
+  getBlogPostById,
   type BlogPostSummary, 
   type BlogPostCreateDto, 
   type BlogPostUpdateDto, 
@@ -87,10 +88,33 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     }
   }
 
-  // Update editor content when value changes
+  // Update editor content when value changes - Fixed to preserve HTML
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
+      // Preserve cursor position
+      const selection = window.getSelection()
+      let cursorPos = 0
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        cursorPos = range.startOffset
+      }
+      
       editorRef.current.innerHTML = value
+      
+      // Restore cursor position if possible
+      if (selection && editorRef.current.firstChild) {
+        try {
+          const range = document.createRange()
+          const textNode = editorRef.current.firstChild
+          range.setStart(textNode, Math.min(cursorPos, textNode.textContent?.length || 0))
+          range.collapse(true)
+          selection.removeAllRanges()
+          selection.addRange(range)
+        } catch (e) {
+          // Ignore cursor positioning errors
+        }
+      }
     }
   }, [value])
 
@@ -282,6 +306,9 @@ const BlogController: React.FC<BlogControllerProps> = ({
     publishNow: false
   })
   
+  // Add loading state for fetching full post content
+  const [loadingFullPost, setLoadingFullPost] = useState(false)
+  
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -333,6 +360,27 @@ const BlogController: React.FC<BlogControllerProps> = ({
       console.error('Error fetching stats:', err)
     }
   }, [userRole])
+
+  // Fetch full blog post content for editing
+  const fetchFullPost = async (postId: number) => {
+    try {
+      setLoadingFullPost(true)
+      // You need to implement this API call in your blogService
+      const response = await getBlogPostById(postId)
+      
+      if (response.success) {
+        return response.data
+      } else {
+        throw new Error(response.message || 'Failed to fetch full post')
+      }
+    } catch (err) {
+      console.error('Error fetching full post:', err)
+      setError('Failed to load full post content')
+      return null
+    } finally {
+      setLoadingFullPost(false)
+    }
+  }
 
   // Initial data fetch
   useEffect(() => {
@@ -472,15 +520,29 @@ const BlogController: React.FC<BlogControllerProps> = ({
     })
   }
 
-  // Handle edit button click
-  const handleEdit = (post: BlogPostSummary) => {
+  // Handle edit button click - FIXED to fetch full content
+  const handleEdit = async (post: BlogPostSummary) => {
     setEditingPost(post)
-    setFormData({
-      title: post.title,
-      content: post.contentPreview, // Note: This might be truncated
-      publishNow: post.isPublished
-    })
-    setShowEditModal(true)
+    
+    // Fetch the full post content instead of using contentPreview
+    const fullPost = await fetchFullPost(post.postId)
+    
+    if (fullPost) {
+      setFormData({
+        title: fullPost.title,
+        content: fullPost.content, // Use full HTML content, not contentPreview
+        publishNow: fullPost.isPublished
+      })
+      setShowEditModal(true)
+    } else {
+      // Fallback to using available data if fetch fails
+      setFormData({
+        title: post.title,
+        content: post.contentPreview || '', // This is still not ideal but better than nothing
+        publishNow: post.isPublished
+      })
+      setShowEditModal(true)
+    }
   }
 
   // Handle delete button click
@@ -700,9 +762,10 @@ const BlogController: React.FC<BlogControllerProps> = ({
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleEdit(post)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        disabled={loadingFullPost}
+                        className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
                       >
-                        Sửa
+                        {loadingFullPost ? 'Đang tải...' : 'Sửa'}
                       </button>
                       <button
                         onClick={() => handleDeleteClick(post.postId)}
@@ -791,7 +854,16 @@ const BlogController: React.FC<BlogControllerProps> = ({
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 {editingPost ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}
               </h3>
-              <form onSubmit={handleSubmit}>
+              
+              {/* Show loading indicator when fetching full post */}
+              {loadingFullPost && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">Đang tải nội dung bài viết...</span>
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit} className={loadingFullPost ? 'opacity-50 pointer-events-none' : ''}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Tiêu đề *
@@ -847,7 +919,7 @@ const BlogController: React.FC<BlogControllerProps> = ({
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || loadingFullPost}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
                     {loading ? 'Đang xử lý...' : (editingPost ? 'Cập nhật' : 'Tạo')}
