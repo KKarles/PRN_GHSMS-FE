@@ -1,40 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 
 const Header: React.FC = () => {
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
   const [showPromoBanner, setShowPromoBanner] = useState(true)
-  const [showBlogDropdown, setShowBlogDropdown] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Check if user has staff/manager/admin roles
-  const hasStaffAccess = user?.roles?.some(role => 
-    ['Staff', 'Manager', 'Admin'].includes(role)
-  ) || false
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowBlogDropdown(false)
-      }
-    }
-
-    if (showBlogDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showBlogDropdown])
 
   const handleNavigation = (path: string) => {
     navigate(path)
-    setShowBlogDropdown(false)
   }
 
   return (
@@ -74,84 +49,13 @@ const Header: React.FC = () => {
                   Dịch vụ
                 </button>
                 
-                {/* Blog Dropdown */}
-                <div className="relative" ref={dropdownRef}>
-                  <button 
-                    onClick={() => setShowBlogDropdown(!showBlogDropdown)}
-                    className="flex items-center text-text-dark hover:text-primary font-secondary transition-colors"
-                  >
-                    Blog
-                    <ChevronDownIcon className={`h-4 w-4 ml-1 transition-transform ${showBlogDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {showBlogDropdown && (
-                    <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[220px]">
-                      {/* Public Blog - Always visible */}
-                      <button 
-                        onClick={() => handleNavigation('/blog')}
-                        className="block w-full text-left px-4 py-3 text-text-dark hover:bg-gray-50 font-secondary border-b border-gray-100 transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <span className="text-lg mr-2">📖</span>
-                          <div>
-                            <div className="font-medium">Xem Blog</div>
-                            <div className="text-xs text-gray-500">Đọc các bài viết công khai</div>
-                          </div>
-                        </div>
-                      </button>
-                      
-                      {/* Authenticated user options */}
-                      {isAuthenticated && (
-                        <>
-                          {/* My Blog - For authenticated users */}
-                          <button 
-                            onClick={() => handleNavigation('/my-blog')}
-                            className="block w-full text-left px-4 py-3 text-text-dark hover:bg-gray-50 font-secondary border-b border-gray-100 transition-colors"
-                          >
-                            <div className="flex items-center">
-                              <span className="text-lg mr-2">✏️</span>
-                              <div>
-                                <div className="font-medium">Blog của tôi</div>
-                                <div className="text-xs text-gray-500">Quản lý bài viết cá nhân</div>
-                              </div>
-                            </div>
-                          </button>
-                          
-                          {/* Admin Blog Management - Only for staff/manager/admin */}
-                          {hasStaffAccess && (
-                            <button 
-                              onClick={() => handleNavigation('/blog-admin')}
-                              className="block w-full text-left px-4 py-3 text-text-dark hover:bg-gray-50 font-secondary transition-colors"
-                            >
-                              <div className="flex items-center">
-                                <span className="text-lg mr-2">⚙️</span>
-                                <div>
-                                  <div className="font-medium">Quản lý Blog (Chung)</div>
-                                  <div className="text-xs text-gray-500">Quản lý tất cả bài viết</div>
-                                </div>
-                              </div>
-                            </button>
-                          )}
-                        </>
-                      )}
-                      
-                      {/* Login prompt for non-authenticated users */}
-                      {!isAuthenticated && (
-                        <div className="px-4 py-3 border-t border-gray-100">
-                          <p className="text-xs text-gray-500 mb-2">
-                            Đăng nhập để tạo và quản lý blog
-                          </p>
-                          <button 
-                            onClick={() => handleNavigation('/login')}
-                            className="text-primary hover:text-primary-600 text-sm font-medium transition-colors"
-                          >
-                            Đăng nhập →
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* Simplified Blog Link */}
+                <button 
+                  onClick={() => handleNavigation('/blog')}
+                  className="text-text-dark hover:text-primary font-secondary transition-colors"
+                >
+                  Blog
+                </button>
                 
                 <button 
                   onClick={() => navigate('/questions')}
@@ -179,14 +83,16 @@ const Header: React.FC = () => {
                   <button 
                     onClick={() => {
                       // Navigate to appropriate dashboard based on user role
-                      const isStaff = user.roles?.some(role => 
-                        ['Staff', 'Manager', 'Admin'].includes(role)
-                      )
-                      const isConsultant = user.roles?.some(role => 
-                        role === 'Consultant'
-                      )
+                      const isAdmin = user.roles?.some(role => role === 'Admin')
+                      const isManager = user.roles?.some(role => role === 'Manager')
+                      const isStaff = user.roles?.some(role => role === 'Staff')
+                      const isConsultant = user.roles?.some(role => role === 'Consultant')
                       
-                      if (isStaff) {
+                      if (isAdmin) {
+                        handleNavigation('/admin/dashboard')
+                      } else if (isManager) {
+                        handleNavigation('/manager/dashboard')
+                      } else if (isStaff) {
                         handleNavigation('/staff/dashboard')
                       } else if (isConsultant) {
                         handleNavigation('/consultant/dashboard')

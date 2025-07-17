@@ -4,7 +4,8 @@ import {
   CalendarIcon,
   ClockIcon,
   BeakerIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  PencilSquareIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import StaffNavigation from './StaffNavigation'
@@ -229,7 +230,7 @@ const StaffDashboard: React.FC = () => {
             <h3 className="text-xl font-primary font-semibold text-text-dark mb-6">
               Thao tác nhanh
             </h3>
-            <div className="grid md:grid-cols-1 gap-4 max-w-md">
+            <div className="grid md:grid-cols-2 gap-4 max-w-2xl">
               <button 
                 onClick={() => navigate('/staff/samples')}
                 className="flex items-center justify-center p-4 border-2 border-primary text-primary rounded-xl hover:bg-primary-light transition-colors"
@@ -237,6 +238,46 @@ const StaffDashboard: React.FC = () => {
                 <BeakerIcon className="h-6 w-6 mr-3" />
                 <span className="font-secondary font-semibold">Quản lý Mẫu</span>
               </button>
+              <button 
+                onClick={() => navigate('/my-blog')}
+                className="flex items-center justify-center p-4 border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-50 transition-colors"
+              >
+                <PencilSquareIcon className="h-6 w-6 mr-3" />
+                <span className="font-secondary font-semibold">Blog Của Tôi</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Blog Management Section (For Staff with elevated permissions) */}
+          <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-border-subtle">
+            <h2 className="text-xl font-primary font-semibold text-text-dark mb-6">
+              Quản lý Blog
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="p-4 border border-gray-200 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-2">Blog Cá nhân</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Tạo và quản lý bài viết blog cá nhân của bạn
+                </p>
+                <button 
+                  onClick={() => navigate('/my-blog')}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Blog Của Tôi
+                </button>
+              </div>
+              <div className="p-4 border border-gray-200 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-2">Quản lý Tất cả Bài viết</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Xem, chỉnh sửa và quản lý tất cả bài viết blog trên hệ thống
+                </p>
+                <button 
+                  onClick={() => navigate('/blog-admin')}
+                  className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors"
+                >
+                  Quản lý Blog Chung
+                </button>
+              </div>
             </div>
           </div>
         </div>

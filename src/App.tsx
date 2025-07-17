@@ -87,17 +87,6 @@ const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 )
 
-// Blog Route with role-based access
-const BlogManagementRoute: React.FC<{ userRole: 'admin' | 'author' }> = ({ userRole }) => {
-  return (
-    <ProtectedRoute>
-      <Layout>
-        <BlogController userRole={userRole} />
-      </Layout>
-    </ProtectedRoute>
-  )
-}
-
 function App() {
   return (
     <AuthProvider>
@@ -129,6 +118,7 @@ function App() {
             </Layout>
           } />
           
+          {/* Public Blog Routes */}
           <Route path="/blog" element={
             <Layout>
               <Blog />
@@ -141,27 +131,27 @@ function App() {
             </Layout>
           } />
 
-        <Route path="/questions" element={
-          <Layout>
-            <QuestionsPage />
-          </Layout>
-        } />
+          <Route path="/questions" element={
+            <Layout>
+              <QuestionsPage />
+            </Layout>
+          } />
 
-        <Route path="/questions/ask" element={
-          <Layout>
-            <AskQuestionPage />
-          </Layout>
-        } />
+          <Route path="/questions/ask" element={
+            <Layout>
+              <AskQuestionPage />
+            </Layout>
+          } />
 
-        <Route path="/questions/:questionId" element={
-          <Layout>
-            <QuestionDetailPage />
-          </Layout>
-        } />
-          {/* Blog Management Route - Protected */}
+          <Route path="/questions/:questionId" element={
+            <Layout>
+              <QuestionDetailPage />
+            </Layout>
+          } />
+
           {/* Blog Management Routes - Protected with role-based access */}
           <Route path="/blog-admin" element={
-            <ProtectedRoute requiredRoles={['Admin', 'Manager']}>
+            <ProtectedRoute requiredRoles={['Admin', 'Manager', 'Staff']}>
               <Layout>
                 <BlogController userRole="admin" />
               </Layout>
@@ -197,7 +187,6 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-
 
           <Route path="/book-service" element={
             <ProtectedRoute>
